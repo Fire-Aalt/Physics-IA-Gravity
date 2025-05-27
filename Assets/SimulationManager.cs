@@ -22,16 +22,24 @@ public class SimulationManager : MonoBehaviour
     public double gravityConstantMultiplier;
     [SerializeField, ReadOnly] private double _finalGravityConstant;
     
-    public double FinalGravityConstant { get; private set; }
+    [Header("Step Solver")]
+    [SerializeField] private bool _enableStepSolver;
+    [SerializeField, ShowIf("_enableStepSolver")] private double _stepDuration = 1;
     
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
     
+    public double FinalGravityConstant { get; private set; }
+    
     public readonly List<CelestialBody> Bodies = new();
+    private double _lastStepTime;
+    private double _realTime;
     
     private void OnValidate()
     {
         CalculateGravityConstant();
+        timeScale = math.max(0.0001f, timeScale);
+        _timeUnit = math.max(1f, _timeUnit);
         
         if (Application.isPlaying) return;
 
@@ -117,11 +125,28 @@ public class SimulationManager : MonoBehaviour
             body.ApplyPresentationValues();
         }
     }
-
+    
     private void FixedUpdate()
     {
         var deltaTime = Time.fixedDeltaTime * _timeUnit * timeScale;
-        
+        _realTime += deltaTime;
+
+        if (_enableStepSolver)
+        {
+            while (_realTime > _lastStepTime + _stepDuration)
+            {
+                StepSimulation(_stepDuration);
+                _lastStepTime += _stepDuration;
+            }
+        }
+        else
+        {
+            StepSimulation(deltaTime);
+        }
+    }
+
+    private void StepSimulation(double deltaTime)
+    {
         // 1) compute pairwise gravitational forces
         foreach (var bodyA in Bodies)
         {
@@ -144,7 +169,7 @@ public class SimulationManager : MonoBehaviour
                 bodyA.Force += force;
             }
         }
-        
+
         // 2) integrate velocities and positions
         foreach (var body in Bodies)
         {

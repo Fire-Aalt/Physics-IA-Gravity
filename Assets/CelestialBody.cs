@@ -37,6 +37,7 @@ public class CelestialBody : MonoBehaviour
         Force = default;
 
         transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
+        ApplyPresentationValues();
         trailRenderer?.Clear();
     }
 

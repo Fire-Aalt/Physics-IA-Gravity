@@ -2001,6 +2001,8 @@ MonoBehaviour:
   _gravityConstant: 0.000000000066743
   gravityConstantMultiplier: 1
   _finalGravityConstant: 0.000000000066743
+  _enableStepSolver: 1
+  _stepDuration: 3600
   configs:
   - celestialBody: {fileID: 4338735}
     setInitialPosition: 1
