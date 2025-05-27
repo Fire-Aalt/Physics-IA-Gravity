@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
 using Unity.Mathematics;
@@ -5,6 +6,7 @@ using UnityEngine;
 
 public class SimulationManager : MonoBehaviour
 {
+    public static SimulationManager Instance { get; private set; }
     public static float LengthUnit { get; private set; }
     public static float MassUnit { get; private set; }
     public static float TimeUnit { get; private set; }
@@ -27,7 +29,7 @@ public class SimulationManager : MonoBehaviour
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
     
-    private readonly List<CelestialBody> _bodies = new();
+    public readonly List<CelestialBody> Bodies = new();
     
     private void OnValidate()
     {
@@ -36,6 +38,11 @@ public class SimulationManager : MonoBehaviour
         if (Application.isPlaying) return;
 
         InitSimulation();
+    }
+
+    private void Awake()
+    {
+        Instance = this;
     }
 
     [Button]
@@ -47,7 +54,7 @@ public class SimulationManager : MonoBehaviour
         _massUnit = MassUnit;
         CalculateGravityConstant();
 
-        _bodies.Clear();
+        Bodies.Clear();
         foreach (var config in configs)
         {
             if (config.setInitialPosition)
@@ -63,12 +70,12 @@ public class SimulationManager : MonoBehaviour
             {
                 config.celestialBody.ResetSimulationValues();
             }
-            _bodies.Add(config.celestialBody);
+            Bodies.Add(config.celestialBody);
         }
         
-        foreach (var bodyA in _bodies)
+        foreach (var bodyA in Bodies)
         {
-            foreach (var bodyB in _bodies)
+            foreach (var bodyB in Bodies)
             {
                 if (bodyA == bodyB) continue;
                 
@@ -96,16 +103,16 @@ public class SimulationManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var n = _bodies.Count;
+        var n = Bodies.Count;
         var dt = Time.fixedDeltaTime * timeUnit * timeScale;
         
         // 1) compute pairwise gravitational forces
         for (int i = 0; i < n; i++)
         {
-            var bodyA = _bodies[i];
+            var bodyA = Bodies[i];
             for (int j = i + 1; j < n; j++)
             {
-                var bodyB = _bodies[j];
+                var bodyB = Bodies[j];
 
                 var delta = bodyA.SimulationPosition - bodyB.SimulationPosition;
                 var distSqr = math.lengthsq(delta);
@@ -128,7 +135,7 @@ public class SimulationManager : MonoBehaviour
         }
 
         // 2) integrate velocities and positions
-        foreach (var body in _bodies)
+        foreach (var body in Bodies)
         {
             // a = F / m
             var acceleration = body.force / body.SimulationMass;
