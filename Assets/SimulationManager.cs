@@ -38,6 +38,25 @@ public class SimulationManager : MonoBehaviour
         if (Application.isPlaying) return;
 
         InitSimulation();
+        
+        // Calculate real positions
+        foreach (var config in configs)
+        {
+            if (config.setInitialPosition)
+            {
+                Vector3 realPos = default;
+                if (config.relativeBody != null)
+                {
+                    realPos = Utils.ToRealLength(config.relativeBody.transform.position);
+                }
+                config.realPosition = realPos + config.relativePosition;
+            }
+            else
+            {
+                var realPos = Utils.ToRealLength(config.celestialBody.transform.position);
+                config.realPosition = realPos;
+            }
+        }
     }
 
     private void Awake()
@@ -57,19 +76,7 @@ public class SimulationManager : MonoBehaviour
         Bodies.Clear();
         foreach (var config in configs)
         {
-            if (config.setInitialPosition)
-            {
-                Vector3 relativePos = default;
-                if (config.relativeBody != null)
-                {
-                    relativePos = Utils.ToRealLength(config.relativeBody.transform.position);
-                }
-                config.celestialBody.ResetSimulationValues(relativePos + config.relativePosition);
-            }
-            else
-            {
-                config.celestialBody.ResetSimulationValues();
-            }
+            config.celestialBody.ResetSimulationValues(config.realPosition);
             Bodies.Add(config.celestialBody);
         }
         
@@ -129,8 +136,8 @@ public class SimulationManager : MonoBehaviour
                 var force = dir * gravityForceMagnitude;
 
                 // accumulate forces (Newton’s 3rd law)
-                bodyA.force += (Vector3)force;
-                bodyB.force -= (Vector3)force;
+                bodyA.Force += (Vector3)force;
+                bodyB.Force -= (Vector3)force;
             }
         }
 
@@ -138,7 +145,7 @@ public class SimulationManager : MonoBehaviour
         foreach (var body in Bodies)
         {
             // a = F / m
-            var acceleration = body.force / body.SimulationMass;
+            var acceleration = body.Force / body.SimulationMass;
             // v += a * dt
             body.SimulationVelocity += acceleration * dt;
             
@@ -149,7 +156,7 @@ public class SimulationManager : MonoBehaviour
             body.rb.MovePosition(position);
             
             // reset force
-            body.force = default;
+            body.Force = default;
         }
     }
 }

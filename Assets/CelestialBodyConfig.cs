@@ -16,4 +16,8 @@ public class CelestialBodyConfig
     [AllowNesting]
     [ShowIf("setInitialPosition")]
     public Vector3 relativePosition;
+
+    [AllowNesting]
+    [ReadOnly]
+    public Vector3 realPosition;
 }

@@ -203,10 +203,11 @@ MonoBehaviour:
   realMass: 1.989e+30
   realRadius: 696340000
   rb: {fileID: 4338734}
+  trailRenderer: {fileID: 1491752961}
   <SimulationMass>k__BackingField: 333043.1
   <SimulationRadius>k__BackingField: 109.17842
   <SimulationVelocity>k__BackingField: {x: -6.908278e-11, y: 0, z: -0.0005795084}
-  force: {x: 0, y: 0, z: 0}
+  doNotScaleTrail: 1
 --- !u!23 &4338736
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1895,6 +1896,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.widthMultiplier
+      value: 0.27240515
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1903,6 +1908,11 @@ PrefabInstance:
 --- !u!4 &1485864244 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7424808331417751202, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 1485864243}
+  m_PrefabAsset: {fileID: 0}
+--- !u!96 &1485864245 stripped
+TrailRenderer:
+  m_CorrespondingSourceObject: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
   m_PrefabInstance: {fileID: 1485864243}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1491752959
@@ -1958,6 +1968,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.widthMultiplier
+      value: 109.17842
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
       propertyPath: m_Parameters.colorGradient.key0.b
       value: 0
       objectReference: {fileID: 0}
@@ -1991,6 +2005,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7424808331417751202, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
   m_PrefabInstance: {fileID: 1491752959}
   m_PrefabAsset: {fileID: 0}
+--- !u!96 &1491752961 stripped
+TrailRenderer:
+  m_CorrespondingSourceObject: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 1491752959}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1503300973
 GameObject:
   m_ObjectHideFlags: 0
@@ -2001,6 +2020,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1503300975}
   - component: {fileID: 1503300974}
+  - component: {fileID: 1503300976}
   m_Layer: 0
   m_Name: Simulation
   m_TagString: Untagged
@@ -2033,14 +2053,17 @@ MonoBehaviour:
     setInitialPosition: 1
     relativeBody: {fileID: 0}
     relativePosition: {x: 0, y: 0, z: 0}
+    realPosition: {x: 0, y: 0, z: 0}
   - celestialBody: {fileID: 2026614236}
     setInitialPosition: 1
     relativeBody: {fileID: 0}
     relativePosition: {x: 1.5156e+11, y: 0, z: 0}
+    realPosition: {x: 1.5156e+11, y: 0, z: 0}
   - celestialBody: {fileID: 1954790585}
     setInitialPosition: 1
     relativeBody: {fileID: 2026614236}
     relativePosition: {x: 384400000, y: 0, z: 0}
+    realPosition: {x: 1.519444e+11, y: 0, z: 0}
 --- !u!4 &1503300975
 Transform:
   m_ObjectHideFlags: 0
@@ -2056,6 +2079,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1503300976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1503300973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e05fbacb640caa4ebfce2c17e6c4220, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _minZoomWidth: 1
+  _maxZoomWidth: 500
 --- !u!1 &1637825173
 GameObject:
   m_ObjectHideFlags: 0
@@ -2420,10 +2457,11 @@ MonoBehaviour:
   realMass: 7.3476732e+22
   realRadius: 1737400
   rb: {fileID: 1954790586}
+  trailRenderer: {fileID: 1485864245}
   <SimulationMass>k__BackingField: 0.012303126
   <SimulationRadius>k__BackingField: 0.27240515
   <SimulationVelocity>k__BackingField: {x: -0.000000037081044, y: 0, z: 0.31105837}
-  force: {x: 0, y: 0, z: 0}
+  doNotScaleTrail: 0
 --- !u!54 &1954790586
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2477,6 +2515,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7424808331417751202, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
   m_PrefabInstance: {fileID: 978440358616245126}
   m_PrefabAsset: {fileID: 0}
+--- !u!96 &2001679941 stripped
+TrailRenderer:
+  m_CorrespondingSourceObject: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 978440358616245126}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2026614233
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,10 +2556,11 @@ MonoBehaviour:
   realMass: 5.9722e+24
   realRadius: 6378000
   rb: {fileID: 2026614241}
+  trailRenderer: {fileID: 2001679941}
   <SimulationMass>k__BackingField: 1
   <SimulationRadius>k__BackingField: 1
   <SimulationVelocity>k__BackingField: {x: -0.000000036028535, y: 0, z: 0.29993123}
-  force: {x: 0, y: 0, z: 0}
+  doNotScaleTrail: 0
 --- !u!23 &2026614237
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2988,6 +3032,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.widthMultiplier
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
       propertyPath: m_Parameters.colorGradient.key0.b
       value: 0
       objectReference: {fileID: 0}
@@ -3021,11 +3069,11 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 2032275217}
+  - {fileID: 2055928566}
+  - {fileID: 617649004}
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1954790584}
   - {fileID: 2026614239}
   - {fileID: 4338738}
   - {fileID: 1503300975}
-  - {fileID: 2055928566}
-  - {fileID: 617649004}

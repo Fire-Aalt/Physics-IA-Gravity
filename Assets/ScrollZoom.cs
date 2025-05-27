@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CinemachineCamera))]
 public class ScrollZoom : MonoBehaviour
 {
+    public static ScrollZoom Instance { get; private set; }
+
     [Header("Zoom Settings")]
     [SerializeField] private InputActionReference _scroll;
     [SerializeField] private float _zoomSpeed = 10f;
@@ -14,9 +16,13 @@ public class ScrollZoom : MonoBehaviour
 
     private CinemachineFollow _cinemachineFollow;
 
+    public Vector2 ZoomRange => new(_minZoom, _maxZoom);
+    public float ZoomProgress => 1 - Mathf.InverseLerp(ZoomRange.x, ZoomRange.y, _cinemachineFollow.FollowOffset.y);
+
     private void Awake()
     {
         _cinemachineFollow = GetComponent<CinemachineFollow>();
+        Instance = this;
     }
 
     private void OnEnable()
@@ -34,8 +40,7 @@ public class ScrollZoom : MonoBehaviour
         float scrollInput = ctx.ReadValue<Vector2>().y;
 
         Vector3 offset = _cinemachineFollow.FollowOffset;
-        var t = 1-Mathf.InverseLerp(_minZoom, _maxZoom, offset.y);
-        offset.y += scrollInput * -_zoomSpeed * _zoomCurve.Evaluate(t);
+        offset.y += scrollInput * -_zoomSpeed * _zoomCurve.Evaluate(ZoomProgress);
         offset.y = Mathf.Clamp(offset.y, _minZoom, _maxZoom);
         _cinemachineFollow.FollowOffset = offset;
     }
