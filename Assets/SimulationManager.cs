@@ -11,10 +11,11 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Controller")]
     public double timeScale = 1;
+    [SerializeField, ReadOnly] private double _finalTimeScale;
     public CelestialBody relativeBody;
 
     [Header("Units")]
-    [SerializeField] private double _timeUnit;
+    [SerializeField] private TimeRange _timeUnit;
     [SerializeField, ReadOnly] private double _lengthUnit;
     
     [Header("Constants")]
@@ -24,12 +25,13 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Step Solver")]
     [SerializeField] private bool _enableStepSolver;
-    [SerializeField, ShowIf("_enableStepSolver")] private double _stepDuration = 1;
+    [SerializeField, ShowIf("_enableStepSolver")] private TimeRange _stepDuration;
     
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
     
     public double FinalGravityConstant { get; private set; }
+    public double FinalTimeScale { get; private set; }
     
     public readonly List<CelestialBody> Bodies = new();
     private double _lastStepTime;
@@ -37,10 +39,10 @@ public class SimulationManager : MonoBehaviour
     
     private void OnValidate()
     {
-        CalculateGravityConstant();
         timeScale = math.max(0.0001f, timeScale);
-        _timeUnit = math.max(1f, _timeUnit);
-        
+        _timeUnit.time = math.max(1f, _timeUnit.time);
+        CalculateFinalValues();
+
         if (Application.isPlaying) return;
 
         InitSimulation();
@@ -81,7 +83,7 @@ public class SimulationManager : MonoBehaviour
     {
         LengthUnit = relativeBody.RealRadius;
         _lengthUnit = LengthUnit;
-        CalculateGravityConstant();
+        CalculateFinalValues();
 
         Bodies.Clear();
         foreach (var config in configs)
@@ -106,11 +108,13 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    private void CalculateGravityConstant()
+    private void CalculateFinalValues()
     {
-        // Scale by a multiplier
         FinalGravityConstant = _gravityConstant * gravityConstantMultiplier;
         _finalGravityConstant = FinalGravityConstant;
+        
+        FinalTimeScale = _timeUnit.Get() * timeScale;
+        _finalTimeScale = FinalTimeScale;
     }
 
     private void Start()
@@ -128,15 +132,16 @@ public class SimulationManager : MonoBehaviour
     
     private void FixedUpdate()
     {
-        var deltaTime = Time.fixedDeltaTime * _timeUnit * timeScale;
+        var deltaTime = Time.fixedDeltaTime * FinalTimeScale;
         _realTime += deltaTime;
 
         if (_enableStepSolver)
         {
-            while (_realTime > _lastStepTime + _stepDuration)
+            var stepDuration = _stepDuration.Get();
+            while (_realTime > _lastStepTime + stepDuration)
             {
-                StepSimulation(_stepDuration);
-                _lastStepTime += _stepDuration;
+                StepSimulation(stepDuration);
+                _lastStepTime += stepDuration;
             }
         }
         else

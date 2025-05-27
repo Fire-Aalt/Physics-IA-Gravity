@@ -1994,15 +1994,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6dac4e25dc46f7898b6720c3edbfe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 1
+  timeScale: 25.36
+  _finalTimeScale: 2191104
   relativeBody: {fileID: 2026614236}
-  _timeUnit: 86400
+  _timeUnit:
+    unit: 2
+    time: 1
   _lengthUnit: 6378000
   _gravityConstant: 0.000000000066743
   gravityConstantMultiplier: 1
   _finalGravityConstant: 0.000000000066743
   _enableStepSolver: 1
-  _stepDuration: 3600
+  _stepDuration:
+    unit: 1
+    time: 1
   configs:
   - celestialBody: {fileID: 4338735}
     setInitialPosition: 1
@@ -2064,6 +2069,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e05fbacb640caa4ebfce2c17e6c4220, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _trailDuration:
+    unit: 4
+    time: 10
   _minZoomWidth: 1
   _maxZoomWidth: 500
 --- !u!1 &1637825173
@@ -2406,7 +2414,7 @@ Transform:
   m_GameObject: {fileID: 1954790580}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 23823.205, y: 0, z: 0}
+  m_LocalPosition: {x: 23823.203, y: 0, z: 0}
   m_LocalScale: {x: 0.27240515, y: 0.27240515, z: 0.27240515}
   m_ConstrainProportionsScale: 0
   m_Children:
