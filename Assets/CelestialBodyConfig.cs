@@ -1,5 +1,6 @@
 using System;
 using NaughtyAttributes;
+using Unity.Mathematics;
 using UnityEngine;
 
 [Serializable]
@@ -15,9 +16,9 @@ public class CelestialBodyConfig
     
     [AllowNesting]
     [ShowIf("setInitialPosition")]
-    public Vector3 relativePosition;
+    public double3 relativePosition;
 
     [AllowNesting]
     [ReadOnly]
-    public Vector3 realPosition;
+    public double3 realPosition;
 }

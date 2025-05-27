@@ -7,50 +7,41 @@ using UnityEngine.Serialization;
 public class CelestialBody : MonoBehaviour
 {
     [FormerlySerializedAs("mass")]
-    [SerializeField] private float realMass;
+    [SerializeField] private double realMass;
     [FormerlySerializedAs("radius")]
-    [SerializeField] private float realRadius;
+    [SerializeField] private double realRadius;
     
-    [HideInInspector] public Rigidbody rb;
-    [HideInInspector] public TrailRenderer trailRenderer;
-    
-    [field: SerializeField, ReadOnly] public float SimulationMass { get; set; }
-    [field: SerializeField, ReadOnly] public float SimulationRadius { get; set; }
-    [field: SerializeField, ReadOnly] public Vector3 SimulationVelocity { get; set; }
+    [field: SerializeField, ReadOnly] public double3 RealVelocity { get; set; }
+    [field: SerializeField, ReadOnly] public double3 RealPosition { get; set; }
     
     [Header("Debug")]
     [SerializeField] private bool doNotScaleTrail;
     
-    public Vector3 SimulationPosition
-    {
-        get => transform.position;
-        private set => transform.position = value;
-    }
-    public Vector3 Force { get; set; }
+    [HideInInspector] public TrailRenderer trailRenderer;
+    
+    public double RealMass => realMass;
+    public double RealRadius => realRadius;
+    
+    public double3 Force { get; set; }
     public bool DoNotScaleTrail => doNotScaleTrail;
 
-    private void Validate()
+    private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
         trailRenderer = GetComponentInChildren<TrailRenderer>();
     }
-
-    public float GetRealMass() => realMass;
-    public float GetRealRadius() => realRadius;
     
-    public void ResetSimulationValues(Vector3 realPosition)
+    public void ResetSimulationValues(double3 realPosition)
     {
-        Validate();
-        SimulationMass = Utils.ToSimulationMass(realMass);
-        SimulationRadius = Utils.ToSimulationLength(realRadius);
-        SimulationPosition = Utils.ToSimulationLength(realPosition);
-        rb.position = SimulationPosition;
-        SimulationVelocity = default;
+        RealPosition = realPosition;
+        RealVelocity = default;
         Force = default;
 
-        rb.mass = SimulationMass;
-        transform.localScale = SimulationRadius * Vector3.one;
-        trailRenderer.Clear();
-        trailRenderer.widthMultiplier = SimulationRadius;
+        transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
+        trailRenderer?.Clear();
+    }
+
+    public void ApplyPresentationValues()
+    {
+        transform.position = Utils.ToSimulationLength(RealPosition);
     }
 }

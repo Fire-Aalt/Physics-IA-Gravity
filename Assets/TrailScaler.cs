@@ -12,7 +12,7 @@ public class TrailScaler : MonoBehaviour
         {
             if (body.DoNotScaleTrail) continue;
             var widthMult = Mathf.Lerp(_minZoomWidth, _maxZoomWidth, 1 - ScrollZoom.Instance.ZoomProgress);
-            body.trailRenderer.widthMultiplier = body.SimulationRadius * widthMult;
+            body.trailRenderer.widthMultiplier = Utils.ToSimulationLength(body.RealRadius * widthMult);
         }
     }
 }

@@ -7,24 +7,22 @@ using UnityEngine;
 public class SimulationManager : MonoBehaviour
 {
     public static SimulationManager Instance { get; private set; }
-    public static float LengthUnit { get; private set; }
-    public static float MassUnit { get; private set; }
-    public static float TimeUnit { get; private set; }
-    public static float SimulationGravityConstant { get; private set; }
+    public static double LengthUnit { get; private set; }
     
     [Header("Controller")]
-    public float timeScale = 1;
+    public double timeScale = 1;
     public CelestialBody relativeBody;
 
     [Header("Units")]
-    public float timeUnit = 60 * 60;
-    [SerializeField, ReadOnly] private float _lengthUnit;
-    [SerializeField, ReadOnly] private float _massUnit;
+    [SerializeField] private double _timeUnit;
+    [SerializeField, ReadOnly] private double _lengthUnit;
     
     [Header("Constants")]
-    public float gravityConstant;
-    public float gravityConstantMultiplier;
-    [SerializeField, ReadOnly] private float _simulationGravityConstant;
+    [SerializeField, ReadOnly] private double _gravityConstant = 6.67430e-11;
+    public double gravityConstantMultiplier;
+    [SerializeField, ReadOnly] private double _finalGravityConstant;
+    
+    public double FinalGravityConstant { get; private set; }
     
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
@@ -39,15 +37,20 @@ public class SimulationManager : MonoBehaviour
 
         InitSimulation();
         
+        var dict = new Dictionary<CelestialBody, double3>(8);
+        
         // Calculate real positions
         foreach (var config in configs)
         {
             if (config.setInitialPosition)
             {
-                Vector3 realPos = default;
+                double3 realPos = default;
                 if (config.relativeBody != null)
                 {
-                    realPos = Utils.ToRealLength(config.relativeBody.transform.position);
+                    if (!dict.TryGetValue(config.relativeBody, out realPos))
+                    {
+                        throw new Exception("Relative body has incorrect order in the list");
+                    }
                 }
                 config.realPosition = realPos + config.relativePosition;
             }
@@ -56,6 +59,7 @@ public class SimulationManager : MonoBehaviour
                 var realPos = Utils.ToRealLength(config.celestialBody.transform.position);
                 config.realPosition = realPos;
             }
+            dict.Add(config.celestialBody, config.realPosition);
         }
     }
 
@@ -67,10 +71,8 @@ public class SimulationManager : MonoBehaviour
     [Button]
     private void InitSimulation()
     {
-        LengthUnit = relativeBody.GetRealRadius();
+        LengthUnit = relativeBody.RealRadius;
         _lengthUnit = LengthUnit;
-        MassUnit = relativeBody.GetRealMass();
-        _massUnit = MassUnit;
         CalculateGravityConstant();
 
         Bodies.Clear();
@@ -86,21 +88,21 @@ public class SimulationManager : MonoBehaviour
             {
                 if (bodyA == bodyB) continue;
                 
-                var m2 = bodyB.SimulationMass;
-                var r = Vector3.Distance(bodyA.SimulationPosition, bodyB.SimulationPosition);
                 bodyA.transform.LookAt(bodyB.transform);
-                bodyA.SimulationVelocity += bodyA.transform.right * Mathf.Sqrt(Mathf.Abs(m2 * SimulationGravityConstant / r));
+                
+                var m2 = bodyB.RealMass;
+                var r = math.distance(bodyA.RealPosition, bodyB.RealPosition);
+                bodyA.RealVelocity += bodyA.transform.right.AsDouble3()
+                                      * math.sqrt(m2 * FinalGravityConstant / r);
             }
         }
     }
 
     private void CalculateGravityConstant()
     {
-        // Calculate relative to relative units
-        SimulationGravityConstant = gravityConstant * (LengthUnit * LengthUnit * LengthUnit / (MassUnit * timeUnit * timeUnit));
         // Scale by a multiplier
-        SimulationGravityConstant *= gravityConstantMultiplier;
-        _simulationGravityConstant = SimulationGravityConstant;
+        FinalGravityConstant = _gravityConstant * gravityConstantMultiplier;
+        _finalGravityConstant = FinalGravityConstant;
     }
 
     private void Start()
@@ -108,52 +110,50 @@ public class SimulationManager : MonoBehaviour
         InitSimulation();
     }
 
+    private void Update()
+    {
+        foreach (var body in Bodies)
+        {
+            body.ApplyPresentationValues();
+        }
+    }
+
     private void FixedUpdate()
     {
-        var n = Bodies.Count;
-        var dt = Time.fixedDeltaTime * timeUnit * timeScale;
+        var deltaTime = Time.fixedDeltaTime * _timeUnit * timeScale;
         
         // 1) compute pairwise gravitational forces
-        for (int i = 0; i < n; i++)
+        foreach (var bodyA in Bodies)
         {
-            var bodyA = Bodies[i];
-            for (int j = i + 1; j < n; j++)
+            foreach (var bodyB in Bodies)
             {
-                var bodyB = Bodies[j];
+                if (bodyA == bodyB) continue;
 
-                var delta = bodyA.SimulationPosition - bodyB.SimulationPosition;
+                var delta = bodyB.RealPosition - bodyA.RealPosition;
                 var distSqr = math.lengthsq(delta);
 
                 if (distSqr < 1e-5f) continue; // avoid div by 0
                 
                 var dir = math.normalize(delta);
 
-                var gravityForceMagnitude = SimulationGravityConstant
-                                 * bodyA.SimulationMass
-                                 * bodyB.SimulationMass
-                                 / distSqr;
+                var gravityForceMagnitude = FinalGravityConstant * bodyA.RealMass * bodyB.RealMass / distSqr;
 
                 var force = dir * gravityForceMagnitude;
 
                 // accumulate forces (Newton’s 3rd law)
-                bodyA.Force += (Vector3)force;
-                bodyB.Force -= (Vector3)force;
+                bodyA.Force += force;
             }
         }
-
+        
         // 2) integrate velocities and positions
         foreach (var body in Bodies)
         {
             // a = F / m
-            var acceleration = body.Force / body.SimulationMass;
+            var acceleration = body.Force / body.RealMass;
             // v += a * dt
-            body.SimulationVelocity += acceleration * dt;
-            
+            body.RealVelocity += acceleration * deltaTime;
             // pos += v * dt
-            var position = body.SimulationPosition + body.SimulationVelocity * dt;
-            
-            // update position using a RigidBody to also account for collisions
-            body.rb.MovePosition(position);
+            body.RealPosition += body.RealVelocity * deltaTime;
             
             // reset force
             body.Force = default;

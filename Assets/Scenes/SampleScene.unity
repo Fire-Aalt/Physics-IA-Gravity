@@ -131,8 +131,6 @@ GameObject:
   - component: {fileID: 4338737}
   - component: {fileID: 4338736}
   - component: {fileID: 4338735}
-  - component: {fileID: 4338734}
-  - component: {fileID: 4338733}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Earth
@@ -140,54 +138,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!135 &4338733
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4338732}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &4338734
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4338732}
-  serializedVersion: 5
-  m_Mass: 333043.1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 2
 --- !u!114 &4338735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,14 +150,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 1.989e+30
-  realRadius: 696340000
-  rb: {fileID: 4338734}
-  trailRenderer: {fileID: 1491752961}
-  <SimulationMass>k__BackingField: 333043.1
-  <SimulationRadius>k__BackingField: 109.17842
-  <SimulationVelocity>k__BackingField: {x: -6.908278e-11, y: 0, z: -0.0005795084}
+  realMass: 1.989000014062259e+30
+  realRadius: 696339968
+  <RealVelocity>k__BackingField:
+    x: -0.000006790715500548392
+    y: 0
+    z: -56.96465716433975
+  <RealPosition>k__BackingField:
+    x: 0
+    y: 0
+    z: 0
   doNotScaleTrail: 1
+  trailRenderer: {fileID: 1491752961}
 --- !u!23 &4338736
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2040,30 +1994,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6dac4e25dc46f7898b6720c3edbfe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 10
+  timeScale: 1
   relativeBody: {fileID: 2026614236}
-  timeUnit: 3600
+  _timeUnit: 86400
   _lengthUnit: 6378000
-  _massUnit: 5.9722e+24
-  gravityConstant: -1.929523e+9
+  _gravityConstant: 0.000000000066743
   gravityConstantMultiplier: 1
-  _simulationGravityConstant: -0.0064679123
+  _finalGravityConstant: 0.000000000066743
   configs:
   - celestialBody: {fileID: 4338735}
     setInitialPosition: 1
     relativeBody: {fileID: 0}
-    relativePosition: {x: 0, y: 0, z: 0}
-    realPosition: {x: 0, y: 0, z: 0}
+    relativePosition:
+      x: 0
+      y: 0
+      z: 0
+    realPosition:
+      x: 0
+      y: 0
+      z: 0
   - celestialBody: {fileID: 2026614236}
     setInitialPosition: 1
     relativeBody: {fileID: 0}
-    relativePosition: {x: 1.5156e+11, y: 0, z: 0}
-    realPosition: {x: 1.5156e+11, y: 0, z: 0}
+    relativePosition:
+      x: 151559995392
+      y: 0
+      z: 0
+    realPosition:
+      x: 151559995392
+      y: 0
+      z: 0
   - celestialBody: {fileID: 1954790585}
     setInitialPosition: 1
     relativeBody: {fileID: 2026614236}
-    relativePosition: {x: 384400000, y: 0, z: 0}
-    realPosition: {x: 1.519444e+11, y: 0, z: 0}
+    relativePosition:
+      x: 384400000
+      y: 0
+      z: 0
+    realPosition:
+      x: 151944395392
+      y: 0
+      z: 0
 --- !u!4 &1503300975
 Transform:
   m_ObjectHideFlags: 0
@@ -2364,8 +2335,6 @@ GameObject:
   - component: {fileID: 1954790583}
   - component: {fileID: 1954790582}
   - component: {fileID: 1954790585}
-  - component: {fileID: 1954790586}
-  - component: {fileID: 1954790587}
   m_Layer: 0
   m_Name: Moon
   m_TagString: Moon
@@ -2454,62 +2423,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 7.3476732e+22
+  realMass: 7.347673232370791e+22
   realRadius: 1737400
-  rb: {fileID: 1954790586}
-  trailRenderer: {fileID: 1485864245}
-  <SimulationMass>k__BackingField: 0.012303126
-  <SimulationRadius>k__BackingField: 0.27240515
-  <SimulationVelocity>k__BackingField: {x: -0.000000037081044, y: 0, z: 0.31105837}
+  <RealVelocity>k__BackingField:
+    x: -0.003645002994249061
+    y: 0
+    z: 30576.50492258462
+  <RealPosition>k__BackingField:
+    x: 151944395392
+    y: 0
+    z: 0
   doNotScaleTrail: 0
---- !u!54 &1954790586
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1954790580}
-  serializedVersion: 5
-  m_Mass: 0.012303126
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 2
---- !u!135 &1954790587
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1954790580}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
+  trailRenderer: {fileID: 1485864245}
 --- !u!4 &2001679940 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7424808331417751202, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
@@ -2532,8 +2457,6 @@ GameObject:
   - component: {fileID: 2026614238}
   - component: {fileID: 2026614237}
   - component: {fileID: 2026614236}
-  - component: {fileID: 2026614241}
-  - component: {fileID: 2026614240}
   m_Layer: 0
   m_Name: Earth
   m_TagString: Earth
@@ -2553,14 +2476,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 5.9722e+24
+  realMass: 5.972200263310735e+24
   realRadius: 6378000
-  rb: {fileID: 2026614241}
-  trailRenderer: {fileID: 2001679941}
-  <SimulationMass>k__BackingField: 1
-  <SimulationRadius>k__BackingField: 1
-  <SimulationVelocity>k__BackingField: {x: -0.000000036028535, y: 0, z: 0.29993123}
+  <RealVelocity>k__BackingField:
+    x: -0.0035415417493110724
+    y: 0
+    z: 29482.709041119415
+  <RealPosition>k__BackingField:
+    x: 151559995392
+    y: 0
+    z: 0
   doNotScaleTrail: 0
+  trailRenderer: {fileID: 2001679941}
 --- !u!23 &2026614237
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2630,54 +2557,6 @@ Transform:
   - {fileID: 2001679940}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &2026614240
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2026614233}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &2026614241
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2026614233}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 2
 --- !u!1 &2032275216
 GameObject:
   m_ObjectHideFlags: 0
