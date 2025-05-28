@@ -29,14 +29,14 @@ public class SimulationManager : MonoBehaviour
     [SerializeField, NaughtyAttributes.ReadOnly] private double _finalGravityConstant;
     
     [Header("Step Solver")]
-    [SerializeField] private bool _enableStepSolver;
-    [SerializeField, ShowIf("_enableStepSolver")] private TimeRange _stepDuration;
+    [SerializeField] private TimeRange _stepDuration;
     
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
 
     public double FinalGravityConstant => _gravityConstant * gravityConstantMultiplier;
     public double FinalTimeScale => _timeUnit.Get() * timeScale;
+    public bool IsSimulationPaused { get; private set; }
 
     public CelestialBody[] Bodies { get; private set; }
 
@@ -108,6 +108,9 @@ public class SimulationManager : MonoBehaviour
     public void InitSimulation()
     {
         Assert.IsTrue(configs.Count == Bodies.Length && configs.Count == _bodiesData.Length);
+
+        _realTime = 0;
+        _lastStepTime.Value = 0;
         
         // Initialize bodies
         for (var i = 0; i < configs.Count; i++)
@@ -147,6 +150,20 @@ public class SimulationManager : MonoBehaviour
         var stepDuration = _stepDuration.Get();
         if (_realTime > _lastStepTime.Value + stepDuration)
         {
+            const int maxStepsPerSecond = 10_000_000;
+                        
+            var remainingTime = _realTime - _lastStepTime.Value;
+            var stepsNeeded = (int)(remainingTime / stepDuration);
+            
+            if (stepsNeeded >= Time.deltaTime * maxStepsPerSecond)
+            {
+                // Rollback to allow continuation of the simulation
+                _realTime -= deltaTime;
+                IsSimulationPaused = true;
+                throw new Exception("Simulation is stuck. Please lower either TimeScale, TimeUnit or increase StepDuration");
+            }
+            IsSimulationPaused = false;
+            
             new SimulationJob
             {
                 Bodies = _bodiesData,
