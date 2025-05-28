@@ -15,12 +15,10 @@ public class SimulationManager : MonoBehaviour
     public static double LengthUnit { get; private set; }
     
     [Header("Controller")]
-    public double timeScale = 1;
-    [SerializeField, NaughtyAttributes.ReadOnly] private double _finalTimeScale;
     public CelestialBody relativeBody;
 
     [Header("Units")]
-    [SerializeField] private TimeRange _timeUnit;
+    public TimeRange timeUnit;
     [SerializeField, NaughtyAttributes.ReadOnly] private double _lengthUnit;
     
     [Header("Constants")]
@@ -35,7 +33,7 @@ public class SimulationManager : MonoBehaviour
     public List<CelestialBodyConfig> configs = new();
 
     public double FinalGravityConstant => _gravityConstant * gravityConstantMultiplier;
-    public double FinalTimeScale => _timeUnit.Get() * timeScale;
+    public double FinalTimeScale => timeUnit.Get();
     public bool IsSimulationPaused { get; private set; }
 
     public CelestialBody[] Bodies { get; private set; }
@@ -46,16 +44,18 @@ public class SimulationManager : MonoBehaviour
     
     private void OnValidate()
     {
-        timeScale = math.max(0.0001f, timeScale);
-        _timeUnit.time = math.max(1f, _timeUnit.time);
-        _finalGravityConstant = FinalGravityConstant;
-        _finalTimeScale = FinalTimeScale;
-        
+        ValidateValues();
+
         if (Application.isPlaying) return;
         
         LengthUnit = relativeBody.RealRadius;
         _lengthUnit = LengthUnit;
         ValidatePositions();
+    }
+
+    public void ValidateValues()
+    {
+        _finalGravityConstant = FinalGravityConstant;
     }
 
     private void ValidatePositions()

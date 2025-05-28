@@ -8,12 +8,18 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    [SerializeField] private Button _simulationInfoFoldoutButton;
+    [SerializeField] private GameObject _simulationInfoFoldout;
+    [SerializeField] private RectTransform _simulationInfoFoldoutArrow;
+    
     [SerializeField] private TMP_Dropdown _followDropdown;
-    [SerializeField] private TMP_InputField _timeScaleInput;
+    [SerializeField] private TimeRangeUI _timeScaleInput;
+    [SerializeField] private TMP_InputField _gravityConstant;
     [SerializeField] private Button _restartButton;
     [SerializeField] private CinemachineCamera _cinemachineCamera;
 
     private SimulationManager _sim;
+    private bool _isSimulationInfoClosed;
     
     private void Start()
     {
@@ -27,35 +33,49 @@ public class UIController : MonoBehaviour
             list.Add(body.gameObject.name);
         }
         
+        _simulationInfoFoldoutButton.onClick.AddListener(ChangeFoldState);
+        
         _followDropdown.AddOptions(list);
         _followDropdown.onValueChanged.AddListener(ChangeFollowTarget);
-        _restartButton.onClick.AddListener(SimulationManager.Instance.InitSimulation);
         
-        _timeScaleInput.text = _sim.timeScale.ToString();
-        _timeScaleInput.onEndEdit.AddListener(EndEditTimeScale);
+        _restartButton.onClick.AddListener(_sim.InitSimulation);
+        
+        _timeScaleInput.Initialize(_sim.timeUnit);
+        
+        _gravityConstant.text = (_sim.gravityConstantMultiplier * 100f) + "%";
+        _gravityConstant.onEndEdit.AddListener(EndGravityConstant);
     }
+    
+    private void ChangeFoldState()
+    {
+        _isSimulationInfoClosed = !_isSimulationInfoClosed;
+        _simulationInfoFoldout.SetActive(!_isSimulationInfoClosed);
 
+        _simulationInfoFoldoutArrow.rotation = Quaternion.Euler(0f, 0f, _isSimulationInfoClosed ? 90f : 0f);
+    }
+    
     private void ChangeFollowTarget(int index)
     {
         _cinemachineCamera.Follow = _sim.Bodies[index].transform;
     }
-
-    private void EndEditTimeScale(string input)
+    
+    private void EndGravityConstant(string input)
     {
-        var prevValue = _sim.timeScale;
+        var prevValue = _sim.gravityConstantMultiplier;
         float timeScale;
         try
         {
+            input = input.Replace("%", "");
             timeScale = float.Parse(input);
         }
         catch (Exception)
         {
-            _timeScaleInput.text = prevValue.ToString();
+            _gravityConstant.text = (prevValue * 100f) + "%";
             return;
         }
         
-        timeScale = math.max(0.0001f, timeScale);
-        _sim.timeScale = timeScale;
-        _timeScaleInput.text = timeScale.ToString();
+        _sim.gravityConstantMultiplier = timeScale / 100f;
+        _sim.ValidateValues();
+        _gravityConstant.text = (_sim.gravityConstantMultiplier * 100f) + "%";
     }
 }

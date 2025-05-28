@@ -1,13 +1,18 @@
+using Unity.Mathematics;
+
 [System.Serializable]
 public class TimeRange
 {
-    public TimeUnit unit = TimeUnit.Years;
-    public double time;
+    public TimeUnit unit = TimeUnit.Days;
+    public int time;
 
     public double Get()
     {
+        time = math.max(1, time);
         switch (unit)
         {
+            case TimeUnit.Milliseconds:
+                return time / 1000.0;
             case TimeUnit.Seconds:
                 return time;
             case TimeUnit.Hours:
@@ -26,6 +31,7 @@ public class TimeRange
 
 public enum TimeUnit
 {
+    Milliseconds,
     Seconds,
     Hours,
     Days,
