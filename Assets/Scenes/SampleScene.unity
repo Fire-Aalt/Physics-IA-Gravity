@@ -152,14 +152,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   realMass: 1.989000014062259e+30
   realRadius: 696339968
-  <RealVelocity>k__BackingField:
-    x: -0.000006790715500548392
-    y: 0
-    z: -56.96465716433975
-  <RealPosition>k__BackingField:
-    x: 0
-    y: 0
-    z: 0
   doNotScaleTrail: 1
   trailRenderer: {fileID: 1491752961}
 --- !u!23 &4338736
@@ -1994,11 +1986,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6dac4e25dc46f7898b6720c3edbfe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 25.36
-  _finalTimeScale: 2191104
+  timeScale: 1
+  _finalTimeScale: 2592000
   relativeBody: {fileID: 2026614236}
   _timeUnit:
-    unit: 2
+    unit: 3
     time: 1
   _lengthUnit: 6378000
   _gravityConstant: 0.000000000066743
@@ -2006,7 +1998,7 @@ MonoBehaviour:
   _finalGravityConstant: 0.000000000066743
   _enableStepSolver: 1
   _stepDuration:
-    unit: 1
+    unit: 0
     time: 1
   configs:
   - celestialBody: {fileID: 4338735}
@@ -2435,14 +2427,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   realMass: 7.347673232370791e+22
   realRadius: 1737400
-  <RealVelocity>k__BackingField:
-    x: -0.003645002994249061
-    y: 0
-    z: 30576.50492258462
-  <RealPosition>k__BackingField:
-    x: 151944395392
-    y: 0
-    z: 0
   doNotScaleTrail: 0
   trailRenderer: {fileID: 1485864245}
 --- !u!4 &2001679940 stripped
@@ -2488,14 +2472,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   realMass: 5.972200263310735e+24
   realRadius: 6378000
-  <RealVelocity>k__BackingField:
-    x: -0.0035415417493110724
-    y: 0
-    z: 29482.709041119415
-  <RealPosition>k__BackingField:
-    x: 151559995392
-    y: 0
-    z: 0
   doNotScaleTrail: 0
   trailRenderer: {fileID: 2001679941}
 --- !u!23 &2026614237

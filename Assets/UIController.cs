@@ -14,7 +14,7 @@ public class UIController : MonoBehaviour
         
         _followDropdown.ClearOptions();
         
-        var list = new List<string>(sim.Bodies.Count);
+        var list = new List<string>(sim.Bodies.Length);
         foreach (var body in sim.Bodies)
         {
             list.Add(body.gameObject.name);

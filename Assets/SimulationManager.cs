@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Properties;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class SimulationManager : MonoBehaviour
 {
@@ -11,17 +16,17 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Controller")]
     public double timeScale = 1;
-    [SerializeField, ReadOnly] private double _finalTimeScale;
+    [SerializeField, NaughtyAttributes.ReadOnly] private double _finalTimeScale;
     public CelestialBody relativeBody;
 
     [Header("Units")]
     [SerializeField] private TimeRange _timeUnit;
-    [SerializeField, ReadOnly] private double _lengthUnit;
+    [SerializeField, NaughtyAttributes.ReadOnly] private double _lengthUnit;
     
     [Header("Constants")]
-    [SerializeField, ReadOnly] private double _gravityConstant = 6.67430e-11;
+    [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.67430e-11;
     public double gravityConstantMultiplier;
-    [SerializeField, ReadOnly] private double _finalGravityConstant;
+    [SerializeField, NaughtyAttributes.ReadOnly] private double _finalGravityConstant;
     
     [Header("Step Solver")]
     [SerializeField] private bool _enableStepSolver;
@@ -29,24 +34,32 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Celestial Bodies Configs")]
     public List<CelestialBodyConfig> configs = new();
-    
-    public double FinalGravityConstant { get; private set; }
-    public double FinalTimeScale { get; private set; }
-    
-    public readonly List<CelestialBody> Bodies = new();
-    private double _lastStepTime;
+
+    public double FinalGravityConstant => _gravityConstant * gravityConstantMultiplier;
+    public double FinalTimeScale => _timeUnit.Get() * timeScale;
+
+    public CelestialBody[] Bodies { get; private set; }
+
+    private NativeArray<CelestialBodyData> _bodiesData;
+    private NativeReference<double> _lastStepTime;
     private double _realTime;
     
     private void OnValidate()
     {
         timeScale = math.max(0.0001f, timeScale);
         _timeUnit.time = math.max(1f, _timeUnit.time);
-        CalculateFinalValues();
-
-        if (Application.isPlaying) return;
-
-        InitSimulation();
+        _finalGravityConstant = FinalGravityConstant;
+        _finalTimeScale = FinalTimeScale;
         
+        if (Application.isPlaying) return;
+        
+        LengthUnit = relativeBody.RealRadius;
+        _lengthUnit = LengthUnit;
+        ValidatePositions();
+    }
+
+    private void ValidatePositions()
+    {
         var dict = new Dictionary<CelestialBody, double3>(8);
         
         // Calculate real positions
@@ -77,116 +90,144 @@ public class SimulationManager : MonoBehaviour
     {
         Instance = this;
     }
+    
+    private void Start()
+    {
+        Bodies = new CelestialBody[configs.Count];
+        _bodiesData = new NativeArray<CelestialBodyData>(configs.Count, Allocator.Persistent);
+        _lastStepTime = new NativeReference<double>(0, Allocator.Persistent);
+        InitSimulation();
+    }
+
+    private void OnDestroy()
+    {
+        _bodiesData.Dispose();
+        _lastStepTime.Dispose();
+    }
 
     [Button]
     private void InitSimulation()
     {
-        LengthUnit = relativeBody.RealRadius;
-        _lengthUnit = LengthUnit;
-        CalculateFinalValues();
-
-        Bodies.Clear();
-        foreach (var config in configs)
-        {
-            config.celestialBody.ResetSimulationValues(config.realPosition);
-            Bodies.Add(config.celestialBody);
-        }
+        Assert.IsTrue(configs.Count == Bodies.Length && configs.Count == _bodiesData.Length);
         
-        foreach (var bodyA in Bodies)
+        // Initialize bodies
+        for (var i = 0; i < configs.Count; i++)
         {
-            foreach (var bodyB in Bodies)
+            var config = configs[i];
+            Bodies[i] = config.celestialBody;
+            _bodiesData[i] = config.celestialBody.Initialize(config.realPosition);
+        }
+
+        // Set initial velocities
+        for (var i = 0; i < _bodiesData.Length; i++)
+        {
+            var bodyA = Bodies[i];
+            ref var bodyAData = ref _bodiesData.ElementAt(i);
+            for (var j = 0; j < _bodiesData.Length; j++)
             {
-                if (bodyA == bodyB) continue;
-                
+                var bodyB = Bodies[j];
+                ref var bodyBData = ref _bodiesData.ElementAt(j);
+                if (bodyAData.Equals(bodyBData)) continue;
+
                 bodyA.transform.LookAt(bodyB.transform);
-                
-                var m2 = bodyB.RealMass;
-                var r = math.distance(bodyA.RealPosition, bodyB.RealPosition);
-                bodyA.RealVelocity += bodyA.transform.right.AsDouble3()
+
+                var m2 = bodyBData.Mass;
+                var r = math.distance(bodyAData.Position, bodyBData.Position);
+                bodyAData.Velocity += bodyA.transform.right.AsDouble3()
                                       * math.sqrt(m2 * FinalGravityConstant / r);
             }
         }
     }
 
-    private void CalculateFinalValues()
-    {
-        FinalGravityConstant = _gravityConstant * gravityConstantMultiplier;
-        _finalGravityConstant = FinalGravityConstant;
-        
-        FinalTimeScale = _timeUnit.Get() * timeScale;
-        _finalTimeScale = FinalTimeScale;
-    }
-
-    private void Start()
-    {
-        InitSimulation();
-    }
-
     private void Update()
     {
-        foreach (var body in Bodies)
+        var deltaTime = Time.deltaTime * FinalTimeScale;
+        _realTime += deltaTime;
+
+        // Run simulation
+        var stepDuration = _stepDuration.Get();
+        if (_realTime > _lastStepTime.Value + stepDuration)
         {
-            body.ApplyPresentationValues();
+            new SimulationJob
+            {
+                Bodies = _bodiesData,
+                LastStepTime = _lastStepTime,
+                RealTime = _realTime,
+                StepDuration = stepDuration,
+                GravityConstant = FinalGravityConstant
+            }.Schedule().Complete();
+        }
+        
+        // Scale simulation results down and apply them
+        for (var i = 0; i < Bodies.Length; i++)
+        {
+            var body = Bodies[i];
+            var bodyData = _bodiesData[i];
+            body.ApplyPresentationValues(bodyData);
         }
     }
     
-    private void FixedUpdate()
+    [BurstCompile]
+    private struct SimulationJob : IJob
     {
-        var deltaTime = Time.fixedDeltaTime * FinalTimeScale;
-        _realTime += deltaTime;
-
-        if (_enableStepSolver)
+        public NativeArray<CelestialBodyData> Bodies;
+        public NativeReference<double> LastStepTime;
+        
+        public double RealTime;
+        public double StepDuration;
+        
+        public double GravityConstant;
+        
+        public void Execute()
         {
-            var stepDuration = _stepDuration.Get();
-            while (_realTime > _lastStepTime + stepDuration)
+            while (RealTime > LastStepTime.Value + StepDuration)
             {
-                StepSimulation(stepDuration);
-                _lastStepTime += stepDuration;
+                StepSimulation(StepDuration);
+                LastStepTime.Value += StepDuration;
             }
         }
-        else
+        
+        private void StepSimulation(double deltaTime)
         {
-            StepSimulation(deltaTime);
-        }
-    }
-
-    private void StepSimulation(double deltaTime)
-    {
-        // 1) compute pairwise gravitational forces
-        foreach (var bodyA in Bodies)
-        {
-            foreach (var bodyB in Bodies)
+            // 1) compute pairwise gravitational forces
+            for (var i = 0; i < Bodies.Length; i++)
             {
-                if (bodyA == bodyB) continue;
+                ref var bodyA = ref Bodies.ElementAt(i);
+                for (var j = 0; j < Bodies.Length; j++)
+                {
+                    ref var bodyB = ref Bodies.ElementAt(j);
+                    if (bodyA.Equals(bodyB)) continue;
 
-                var delta = bodyB.RealPosition - bodyA.RealPosition;
-                var distSqr = math.lengthsq(delta);
+                    var delta = bodyB.Position - bodyA.Position;
+                    var distSqr = math.lengthsq(delta);
 
-                if (distSqr < 1e-5f) continue; // avoid div by 0
-                
-                var dir = math.normalize(delta);
+                    if (distSqr < 1e-5f) continue; // avoid div by 0
 
-                var gravityForceMagnitude = FinalGravityConstant * bodyA.RealMass * bodyB.RealMass / distSqr;
+                    var dir = math.normalize(delta);
 
-                var force = dir * gravityForceMagnitude;
+                    var gravityForceMagnitude = GravityConstant * bodyA.Mass * bodyB.Mass / distSqr;
 
-                // accumulate forces (Newton’s 3rd law)
-                bodyA.Force += force;
+                    var force = dir * gravityForceMagnitude;
+
+                    // accumulate forces (Newton’s 3rd law)
+                    bodyA.Force += force;
+                }
             }
-        }
 
-        // 2) integrate velocities and positions
-        foreach (var body in Bodies)
-        {
-            // a = F / m
-            var acceleration = body.Force / body.RealMass;
-            // v += a * dt
-            body.RealVelocity += acceleration * deltaTime;
-            // pos += v * dt
-            body.RealPosition += body.RealVelocity * deltaTime;
-            
-            // reset force
-            body.Force = default;
+            // 2) integrate velocities and positions
+            for (var i = 0; i < Bodies.Length; i++)
+            {
+                ref var body = ref Bodies.ElementAt(i);
+                // a = F / m
+                var acceleration = body.Force / body.Mass;
+                // v += a * dt
+                body.Velocity += acceleration * deltaTime;
+                // pos += v * dt
+                body.Position += body.Velocity * deltaTime;
+
+                // reset force
+                body.Force = default;
+            }
         }
     }
 }

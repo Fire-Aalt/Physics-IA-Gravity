@@ -11,9 +11,6 @@ public class CelestialBody : MonoBehaviour
     [FormerlySerializedAs("radius")]
     [SerializeField] private double realRadius;
     
-    [field: SerializeField, ReadOnly] public double3 RealVelocity { get; set; }
-    [field: SerializeField, ReadOnly] public double3 RealPosition { get; set; }
-    
     [Header("Debug")]
     [SerializeField] private bool doNotScaleTrail;
     
@@ -22,27 +19,59 @@ public class CelestialBody : MonoBehaviour
     public double RealMass => realMass;
     public double RealRadius => realRadius;
     
-    public double3 Force { get; set; }
     public bool DoNotScaleTrail => doNotScaleTrail;
 
     private void Awake()
     {
         trailRenderer = GetComponentInChildren<TrailRenderer>();
     }
-    
-    public void ResetSimulationValues(double3 realPosition)
-    {
-        RealPosition = realPosition;
-        RealVelocity = default;
-        Force = default;
 
+    private CelestialBodyData AsData(double3 realPosition)
+    {
+        return new CelestialBodyData
+        {
+            HashCode = GetHashCode(),
+            Mass = realMass,
+            Radius = realRadius,
+            Position = realPosition
+        };
+    }
+    
+    public CelestialBodyData Initialize(double3 realPosition)
+    {
+        var data = AsData(realPosition);
         transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
-        ApplyPresentationValues();
+        ApplyPresentationValues(data);
         trailRenderer?.Clear();
+
+        return data;
     }
 
-    public void ApplyPresentationValues()
+    public void ApplyPresentationValues(CelestialBodyData celestialBodyData)
     {
-        transform.position = Utils.ToSimulationLength(RealPosition);
+        transform.position = Utils.ToSimulationLength(celestialBodyData.Position);
+    }
+}
+
+[System.Serializable]
+public struct CelestialBodyData : IEquatable<CelestialBodyData>
+{
+    public int HashCode;
+    
+    public double Mass;
+    public double Radius;
+    public double3 Force;
+    public double3 Velocity;
+    
+    public double3 Position;
+
+    public bool Equals(CelestialBodyData other)
+    {
+        return HashCode == other.HashCode;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode;
     }
 }
