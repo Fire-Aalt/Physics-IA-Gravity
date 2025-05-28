@@ -105,8 +105,7 @@ public class SimulationManager : MonoBehaviour
         _lastStepTime.Dispose();
     }
 
-    [Button]
-    private void InitSimulation()
+    public void InitSimulation()
     {
         Assert.IsTrue(configs.Count == Bodies.Length && configs.Count == _bodiesData.Length);
         

@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
     [SerializeField] private TMP_Dropdown _followDropdown;
+    [SerializeField] private Button _restartButton;
     [SerializeField] private CinemachineCamera _cinemachineCamera;
     
     private void Start()
@@ -22,6 +24,7 @@ public class UIController : MonoBehaviour
         
         _followDropdown.AddOptions(list);
         _followDropdown.onValueChanged.AddListener(ChangeFollowTarget);
+        _restartButton.onClick.AddListener(SimulationManager.Instance.InitSimulation);
     }
 
     private void ChangeFollowTarget(int index)
