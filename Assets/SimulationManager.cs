@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NaughtyAttributes;
 using Unity.Burst;
 using Unity.Collections;
@@ -16,7 +17,9 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Controller")]
     public CelestialBody relativeBody;
-
+    [SerializeField] private double _moonOrbitAverageTime;
+    [SerializeField] private int _moonOrbitAverageTimeCount;
+    
     [Header("Units")]
     public TimeRange timeUnit;
     [SerializeField, NaughtyAttributes.ReadOnly] private double _lengthUnit;
@@ -25,8 +28,9 @@ public class SimulationManager : MonoBehaviour
     [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.67430e-11;
     public double gravityConstantMultiplier;
     [SerializeField, NaughtyAttributes.ReadOnly] private double _finalGravityConstant;
-    
-    [Header("Step Solver")]
+
+    [Header("Step Solver")] 
+    [SerializeField] private IntegrationMethod _integrationMethod;
     [SerializeField] private TimeRange _stepDuration;
     
     [Header("Celestial Bodies Configs")]
@@ -40,6 +44,7 @@ public class SimulationManager : MonoBehaviour
 
     private NativeArray<CelestialBodyData> _bodiesData;
     private NativeReference<double> _lastStepTime;
+    private NativeList<double> _moonOrbitRotationEndTimes;
     private double _realTime;
     
     private void OnValidate()
@@ -50,40 +55,11 @@ public class SimulationManager : MonoBehaviour
         
         LengthUnit = relativeBody.RealRadius;
         _lengthUnit = LengthUnit;
-        ValidatePositions();
     }
 
     public void ValidateValues()
     {
         _finalGravityConstant = FinalGravityConstant;
-    }
-
-    private void ValidatePositions()
-    {
-        var dict = new Dictionary<CelestialBody, double3>(8);
-        
-        // Calculate real positions
-        foreach (var config in configs)
-        {
-            if (config.setInitialPosition)
-            {
-                double3 realPos = default;
-                if (config.relativeBody != null)
-                {
-                    if (!dict.TryGetValue(config.relativeBody, out realPos))
-                    {
-                        throw new Exception("Relative body has incorrect order in the list");
-                    }
-                }
-                config.realPosition = realPos + config.relativePosition;
-            }
-            else
-            {
-                var realPos = Utils.ToRealLength(config.celestialBody.transform.position);
-                config.realPosition = realPos;
-            }
-            dict.Add(config.celestialBody, config.realPosition);
-        }
     }
 
     private void Awake()
@@ -96,6 +72,7 @@ public class SimulationManager : MonoBehaviour
         Bodies = new CelestialBody[configs.Count];
         _bodiesData = new NativeArray<CelestialBodyData>(configs.Count, Allocator.Persistent);
         _lastStepTime = new NativeReference<double>(0, Allocator.Persistent);
+        _moonOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
         InitSimulation();
     }
 
@@ -103,6 +80,7 @@ public class SimulationManager : MonoBehaviour
     {
         _bodiesData.Dispose();
         _lastStepTime.Dispose();
+        _moonOrbitRotationEndTimes.Dispose();
     }
 
     public void InitSimulation()
@@ -111,13 +89,21 @@ public class SimulationManager : MonoBehaviour
 
         _realTime = 0;
         _lastStepTime.Value = 0;
+
+        var found = FindObjectsByType<CelestialBody>(sortMode: FindObjectsSortMode.None);
+        foreach (var body in found)
+        {
+            Destroy(body.gameObject);
+        }
         
         // Initialize bodies
         for (var i = 0; i < configs.Count; i++)
         {
             var config = configs[i];
-            Bodies[i] = config.celestialBody;
-            _bodiesData[i] = config.celestialBody.Initialize(config.realPosition);
+            
+            var instance = Instantiate(config.celestialBodyPrefab);
+            Bodies[i] = instance.GetComponent<CelestialBody>();
+            _bodiesData[i] = Bodies[i].Initialize(config.realPositionOffset);
         }
 
         // Set initial velocities
@@ -141,8 +127,12 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
+    private bool _pause;
+    
     private void Update()
     {
+        if (_pause) return;
+        
         var deltaTime = Time.deltaTime * FinalTimeScale;
         _realTime += deltaTime;
 
@@ -170,7 +160,11 @@ public class SimulationManager : MonoBehaviour
                 LastStepTime = _lastStepTime,
                 RealTime = _realTime,
                 StepDuration = stepDuration,
-                GravityConstant = FinalGravityConstant
+                GravityConstant = FinalGravityConstant,
+                IntegrationMethod = _integrationMethod,
+                MoonOrbitRotationEndTimes = _moonOrbitRotationEndTimes,
+                EarthBodyIndex = 0,
+                MoonBodyIndex = 1
             }.Schedule().Complete();
         }
         
@@ -181,6 +175,27 @@ public class SimulationManager : MonoBehaviour
             var bodyData = _bodiesData[i];
             body.ApplyPresentationValues(bodyData);
         }
+        
+        if (_moonOrbitRotationEndTimes.Length > 0)
+        {
+            var sum = 0.0;
+            var prevTime = 0.0;
+            foreach (var endTime in _moonOrbitRotationEndTimes)
+            {
+                sum += endTime - prevTime;
+                prevTime = endTime;
+            }
+
+            _moonOrbitAverageTime = sum / _moonOrbitRotationEndTimes.Length;
+            _moonOrbitAverageTimeCount = _moonOrbitRotationEndTimes.Length;
+        }
+
+
+
+        // if (_realTime > 60 * 60 * 24 * 365)
+        // {
+        //     _pause = true;
+        // }
     }
     
     [BurstCompile]
@@ -193,57 +208,96 @@ public class SimulationManager : MonoBehaviour
         public double StepDuration;
         
         public double GravityConstant;
+        public IntegrationMethod IntegrationMethod;
+        
+        
+        public NativeList<double> MoonOrbitRotationEndTimes;
+        public int EarthBodyIndex;
+        public int MoonBodyIndex;
+
+        private double3 _previousMoonRelativePosition;
         
         public void Execute()
         {
+            _previousMoonRelativePosition = GetMoonRelativePosition();
             while (RealTime > LastStepTime.Value + StepDuration)
             {
                 StepSimulation(StepDuration);
                 LastStepTime.Value += StepDuration;
             }
         }
-        
+
         private void StepSimulation(double deltaTime)
         {
-            // 1) compute pairwise gravitational forces
-            for (var i = 0; i < Bodies.Length; i++)
+            if (IntegrationMethod == IntegrationMethod.VelocityVerlet)
             {
-                ref var bodyA = ref Bodies.ElementAt(i);
-                for (var j = 0; j < Bodies.Length; j++)
+                for (int i = 0; i < Bodies.Length; i++)
                 {
-                    ref var bodyB = ref Bodies.ElementAt(j);
-                    if (bodyA.Equals(bodyB)) continue;
-
-                    var delta = bodyB.Position - bodyA.Position;
-                    var distSqr = math.lengthsq(delta);
-
-                    if (distSqr < 1e-5f) continue; // avoid div by 0
-
-                    var dir = math.normalize(delta);
-
-                    var gravityForceMagnitude = GravityConstant * bodyA.Mass * bodyB.Mass / distSqr;
-
-                    var force = dir * gravityForceMagnitude;
-
-                    // accumulate forces (Newton’s 3rd law)
-                    bodyA.Force += force;
+                    ref var body = ref Bodies.ElementAt(i);
+                    // x_{n+1} = x_n + v_n*dt + 0.5*a_n*dt^2
+                    body.Position += body.Velocity * deltaTime + 0.5f * body.Acceleration * deltaTime * deltaTime;
                 }
             }
 
-            // 2) integrate velocities and positions
-            for (var i = 0; i < Bodies.Length; i++)
+            for (int i = 0; i < Bodies.Length; i++)
+            {
+                ref var bodyA = ref Bodies.ElementAt(i);
+                for (int j = i + 1; j < Bodies.Length; j++)
+                {
+                    ref var bodyB = ref Bodies.ElementAt(j);
+                    
+                    var delta = bodyB.Position - bodyA.Position;
+                    var distSqr = math.lengthsq(delta) + 1e-9; // avoid zero
+                    var forceMagnitude = GravityConstant * (bodyA.Mass * bodyB.Mass) / distSqr;
+                    var force = math.normalize(delta) * forceMagnitude;
+                    
+                    bodyA.Force += force;
+                    bodyB.Force -= force;
+                }
+            }
+
+            for (int i = 0; i < Bodies.Length; i++)
             {
                 ref var body = ref Bodies.ElementAt(i);
                 // a = F / m
-                var acceleration = body.Force / body.Mass;
-                // v += a * dt
-                body.Velocity += acceleration * deltaTime;
-                // pos += v * dt
-                body.Position += body.Velocity * deltaTime;
+                var newAcceleration = body.Force / body.Mass;
+                
+                if (IntegrationMethod == IntegrationMethod.VelocityVerlet)
+                {
+                    // v_{n+1} = v_n + 0.5*(a_n + a_{n+1})*dt
+                    body.Velocity += 0.5f * (body.Acceleration + newAcceleration) * deltaTime;
 
-                // reset force
+                    body.Acceleration = newAcceleration;
+                }
+                else if (IntegrationMethod == IntegrationMethod.Euler)
+                {
+                    // v += a * dt
+                    body.Velocity += newAcceleration * deltaTime;
+                    // pos += v * dt
+                    body.Position += body.Velocity * deltaTime;
+                }
+
                 body.Force = default;
             }
+
+            var moonRelativePosition = GetMoonRelativePosition();
+            if (_previousMoonRelativePosition.z < 0.0 && moonRelativePosition.z > 0.0)
+            {
+                MoonOrbitRotationEndTimes.Add(LastStepTime.Value + deltaTime);
+            }
+            _previousMoonRelativePosition = moonRelativePosition;
         }
+        
+        private double3 GetMoonRelativePosition()
+        {
+            return Bodies[MoonBodyIndex].Position - Bodies[EarthBodyIndex].Position;
+        }
+    }
+    
+    public enum IntegrationMethod
+    {
+        Euler,
+        [InspectorName("Velocity Verlet (a.k.a. leapfrog)")]
+        VelocityVerlet
     }
 }

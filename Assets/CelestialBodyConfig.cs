@@ -6,19 +6,11 @@ using UnityEngine;
 [Serializable]
 public class CelestialBodyConfig
 {
-    public CelestialBody celestialBody;
+    public GameObject celestialBodyPrefab;
 
     public bool setInitialPosition;
-    
-    [AllowNesting]
-    [ShowIf("setInitialPosition")]
-    public CelestialBody relativeBody;
-    
-    [AllowNesting]
-    [ShowIf("setInitialPosition")]
-    public double3 relativePosition;
 
     [AllowNesting]
-    [ReadOnly]
-    public double3 realPosition;
+    [ShowIf("setInitialPosition")]
+    public double realPositionOffset;
 }
