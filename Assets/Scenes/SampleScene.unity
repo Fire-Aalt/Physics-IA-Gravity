@@ -1317,7 +1317,6 @@ MonoBehaviour:
   m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
-  m_Version: 2
   m_TaaSettings:
     m_Quality: 3
     m_FrameInfluence: 0.1
@@ -1325,6 +1324,7 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!114 &330585548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1695,17 +1695,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 3
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
-  m_LightLayerMask: 1
-  m_RenderingLayers: 1
   m_CustomShadowLayers: 0
-  m_ShadowLayerMask: 1
-  m_ShadowRenderingLayers: 1
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &432759950
 GameObject:
   m_ObjectHideFlags: 0
@@ -4915,13 +4921,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6dac4e25dc46f7898b6720c3edbfe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  relativeBody: {fileID: 0}
-  _moonOrbitAverageTime: 0
-  _moonOrbitAverageTimeCount: 0
+  relativeBody: {fileID: 5009529459274193440, guid: db516d1bffdd1fa48ad9368ab727ec94, type: 3}
   timeUnit:
     unit: 4
     time: 3
-  _lengthUnit: 0
+  _lengthUnit: 6378000
   _gravityConstant: 0.000000000066743
   gravityConstantMultiplier: 1
   _finalGravityConstant: 0.000000000066743
@@ -4931,14 +4935,15 @@ MonoBehaviour:
     time: 1
   configs:
   - celestialBodyPrefab: {fileID: 6319522104069085211, guid: 02c104491ba86554888cc99dfed19d24, type: 3}
-    setInitialPosition: 1
     realPositionOffset: 0
+    additionalOffset: 0
   - celestialBodyPrefab: {fileID: 7851642107736680174, guid: db516d1bffdd1fa48ad9368ab727ec94, type: 3}
-    setInitialPosition: 1
-    realPositionOffset: 151630000000
+    realPositionOffset: 149597870700
+    additionalOffset: 0
   - celestialBodyPrefab: {fileID: 1014971039017154629, guid: c24b71445403ea147ab11ff61b15d860, type: 3}
-    setInitialPosition: 1
-    realPositionOffset: 151245600000
+    realPositionOffset: 149597870700
+    additionalOffset: 384400000
+  _days: 0
 --- !u!4 &1503300975
 Transform:
   m_ObjectHideFlags: 0

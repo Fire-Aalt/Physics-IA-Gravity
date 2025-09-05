@@ -8,6 +8,8 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    public static UIController Instance { get; private set; }
+    
     [SerializeField] private Button _simulationInfoFoldoutButton;
     [SerializeField] private GameObject _simulationInfoFoldout;
     [SerializeField] private RectTransform _simulationInfoFoldoutArrow;
@@ -18,19 +20,23 @@ public class UIController : MonoBehaviour
     [SerializeField] private Button _restartButton;
     [SerializeField] private CinemachineCamera _cinemachineCamera;
 
-    private SimulationManager _sim;
     private bool _isSimulationInfoClosed;
+    private SimulationManager Sim => SimulationManager.Instance;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
     
     private void Start()
     {
-        _sim = SimulationManager.Instance;
-        
+        _followDropdown.value = 0;
         _followDropdown.ClearOptions();
         
-        var list = new List<string>(_sim.Bodies.Length);
-        foreach (var body in _sim.Bodies)
+        var list = new List<string>(Sim.Bodies.Length);
+        foreach (var body in Sim.Bodies)
         {
-            list.Add(body.gameObject.name);
+            list.Add(body.gameObject.name.Replace("(Clone)", ""));
         }
         
         _simulationInfoFoldoutButton.onClick.AddListener(ChangeFoldState);
@@ -38,12 +44,17 @@ public class UIController : MonoBehaviour
         _followDropdown.AddOptions(list);
         _followDropdown.onValueChanged.AddListener(ChangeFollowTarget);
         
-        _restartButton.onClick.AddListener(_sim.InitSimulation);
+        _restartButton.onClick.AddListener(Sim.InitSimulation);
         
-        _timeScaleInput.Initialize(_sim.timeUnit);
+        _timeScaleInput.Initialize(Sim.timeUnit);
         
-        _gravityConstant.text = (_sim.gravityConstantMultiplier * 100f) + "%";
+        _gravityConstant.text = (Sim.gravityConstantMultiplier * 100f) + "%";
         _gravityConstant.onEndEdit.AddListener(EndGravityConstant);
+    }
+
+    public void Restart()
+    {
+        ChangeFollowTarget(_followDropdown.value);
     }
     
     private void ChangeFoldState()
@@ -56,12 +67,12 @@ public class UIController : MonoBehaviour
     
     private void ChangeFollowTarget(int index)
     {
-        _cinemachineCamera.Follow = _sim.Bodies[index].transform;
+        _cinemachineCamera.Follow = Sim.Bodies[index].transform;
     }
     
     private void EndGravityConstant(string input)
     {
-        var prevValue = _sim.gravityConstantMultiplier;
+        var prevValue = Sim.gravityConstantMultiplier;
         float timeScale;
         try
         {
@@ -74,8 +85,8 @@ public class UIController : MonoBehaviour
             return;
         }
         
-        _sim.gravityConstantMultiplier = timeScale / 100f;
-        _sim.ValidateValues();
-        _gravityConstant.text = (_sim.gravityConstantMultiplier * 100f) + "%";
+        Sim.gravityConstantMultiplier = timeScale / 100f;
+        Sim.ValidateValues();
+        _gravityConstant.text = (Sim.gravityConstantMultiplier * 100f) + "%";
     }
 }
