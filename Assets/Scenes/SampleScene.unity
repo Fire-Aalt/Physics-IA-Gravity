@@ -5031,7 +5031,7 @@ MonoBehaviour:
       y: 0
       z: 0
     addOffset: 1
-    angle: 40.5
+    angle: 40.45
     offsetKm: 384399
     realMassKg: 7.346e+22
     realDiameterKm: 3474
