@@ -43,7 +43,6 @@ public class SimulationManager : MonoBehaviour
     private NativeReference<double> _lastStepTime;
     private NativeList<double> _moonOrbitRotationEndTimes;
     private double _realTime;
-
     
     private void OnValidate()
     {
@@ -51,7 +50,7 @@ public class SimulationManager : MonoBehaviour
 
         if (Application.isPlaying) return;
         
-        LengthUnit = relativeBody.RealRadius;
+        LengthUnit = configs.First(c => c.celestialBodyPrefab == relativeBody.gameObject).realDiameterKm * 1000.0 / 2.0;
         _lengthUnit = LengthUnit;
     }
 
@@ -103,15 +102,7 @@ public class SimulationManager : MonoBehaviour
             
             var instance = Instantiate(config.celestialBodyPrefab);
             Bodies[i] = instance.GetComponent<CelestialBody>();
-
-            if (Bodies[i].name == "Moon(Clone)")
-            {
-                _bodiesData[i] = Bodies[i].Initialize(new double3(config.realPositionOffset, 0, config.additionalOffset));
-            }
-            else
-            {
-                _bodiesData[i] = Bodies[i].Initialize(new double3(config.realPositionOffset + config.additionalOffset, 0, 0));
-            }
+            _bodiesData[i] = Bodies[i].Initialize(config);
         }
 
         // Set initial velocities
@@ -147,59 +138,65 @@ public class SimulationManager : MonoBehaviour
     
     private void Update()
     {
-        if (_pause) return;
-        if (_days >= 365) return;
-        
-        var deltaTime = Time.deltaTime * FinalTimeScale;
-        _realTime += deltaTime;
-		_days = Mathf.FloorToInt((float)_realTime / (60f * 60f * 24f));
+        if (!_pause && _days < 365)
+        {
+            var deltaTime = Time.deltaTime * FinalTimeScale;
+            _realTime += deltaTime;
+		    _days = Mathf.FloorToInt((float)_realTime / (60f * 60f * 24f));
 
-        
-        // Run simulation
-        var stepDuration = _stepDuration.Get();
-        if (_realTime > _lastStepTime.Value + stepDuration)
-        {
-            const int maxStepsPerSecond = 10_000_000;
-                        
-            var remainingTime = _realTime - _lastStepTime.Value;
-            var stepsNeeded = (int)(remainingTime / stepDuration);
             
-            if (stepsNeeded >= Time.deltaTime * maxStepsPerSecond)
+            // Run simulation
+            var stepDuration = _stepDuration.Get();
+            if (_realTime > _lastStepTime.Value + stepDuration)
             {
-                // Rollback to allow continuation of the simulation
-                _realTime -= deltaTime;
-                IsSimulationPaused = true;
-                throw new Exception("Simulation is stuck. Please lower either TimeScale, TimeUnit or increase StepDuration");
+                const int maxStepsPerSecond = 10_000_000;
+                
+                var remainingTime = _realTime - _lastStepTime.Value;
+                var stepsNeeded = (int)(remainingTime / stepDuration);
+                
+                if (stepsNeeded >= Time.deltaTime * maxStepsPerSecond)
+                {
+                    // Rollback to allow continuation of the simulation
+                    _realTime -= deltaTime;
+                    IsSimulationPaused = true;
+                    throw new Exception("Simulation is stuck. Please lower either TimeScale, TimeUnit or increase StepDuration");
+                }
+                IsSimulationPaused = false;
+                
+                new SimulationJob
+                {
+                    Bodies = _bodiesData,
+                    LastStepTime = _lastStepTime,
+                    RealTime = _realTime,
+                    StepDuration = stepDuration,
+                    GravityConstant = FinalGravityConstant,
+                    IntegrationMethod = _integrationMethod
+                }.Schedule().Complete();
             }
-            IsSimulationPaused = false;
             
-            new SimulationJob
+            // Scale simulation results down and apply them
+            for (var i = 0; i < Bodies.Length; i++)
             {
-                Bodies = _bodiesData,
-                LastStepTime = _lastStepTime,
-                RealTime = _realTime,
-                StepDuration = stepDuration,
-                GravityConstant = FinalGravityConstant,
-                IntegrationMethod = _integrationMethod
-            }.Schedule().Complete();
+                var body = Bodies[i];
+                var bodyData = _bodiesData[i];
+                body.ApplyPresentationValues(bodyData);
+            }
         }
         
-        // Scale simulation results down and apply them
-        for (var i = 0; i < Bodies.Length; i++)
-        {
-            var body = Bodies[i];
-            var bodyData = _bodiesData[i];
-            body.ApplyPresentationValues(bodyData);
-        }
         
         for (int i = 0; i < _bodiesData.Length; i++)
         {
             ref var bodyAData = ref _bodiesData.ElementAt(i);
             Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), bodyAData.Velocity.AsVector3(), Color.green);
+
+            if (i == 0)
+            {
+                Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), Vector3.right * 100000f, Color.red);
+            }
         }
     }
     
-    [BurstCompile]
+    [BurstCompile(FloatPrecision.High, FloatMode.Deterministic)]
     private struct SimulationJob : IJob
     {
         public NativeArray<CelestialBodyData> Bodies;

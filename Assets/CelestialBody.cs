@@ -6,18 +6,12 @@ using UnityEngine.Serialization;
 
 public class CelestialBody : MonoBehaviour
 {
-    [FormerlySerializedAs("mass")]
-    [SerializeField] private double realMass;
-    [FormerlySerializedAs("radius")]
-    [SerializeField] private double realRadius;
-    
     [Header("Debug")]
     [SerializeField] private bool doNotScaleTrail;
     
     [HideInInspector] public TrailRenderer trailRenderer;
     
-    public double RealMass => realMass;
-    public double RealRadius => realRadius;
+    public double RealRadius { get; private set; }
     
     public bool DoNotScaleTrail => doNotScaleTrail;
 
@@ -26,20 +20,29 @@ public class CelestialBody : MonoBehaviour
         trailRenderer = GetComponentInChildren<TrailRenderer>();
     }
 
-    private CelestialBodyData AsData(double3 position)
+    private CelestialBodyData AsData(CelestialBodyConfig config)
     {
+        var positionKm = config.realPositionKm;
+        if (config.addOffset)
+        {
+            positionKm += config.offsetKm * new double3(
+                math.sin(math.radians(config.angle)),
+                0,
+                math.cos(math.radians(config.angle)));
+        }
+        
         return new CelestialBodyData
         {
             HashCode = GetHashCode(),
-            Mass = realMass,
-            Radius = realRadius,
-            Position = position
+            Mass = config.realMassKg,
+            Position = positionKm * 1000.0
         };
     }
     
-    public CelestialBodyData Initialize(double3 position)
+    public CelestialBodyData Initialize(CelestialBodyConfig config)
     {
-        var data = AsData(position);
+        RealRadius = config.realDiameterKm * 1000.0 / 2.0;
+        var data = AsData(config);
         transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
         ApplyPresentationValues(data);
         trailRenderer?.Clear();
@@ -58,7 +61,6 @@ public struct CelestialBodyData : IEquatable<CelestialBodyData>
     public int HashCode;
     
     public double Mass;
-    public double Radius;
     public double3 Force;
     public double3 Acceleration;
     public double3 Velocity;
