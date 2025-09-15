@@ -38,7 +38,6 @@ public class ScrollZoom : MonoBehaviour
     private void Zoom(InputAction.CallbackContext ctx)
     {
         float scrollInput = ctx.ReadValue<Vector2>().y;
-        Debug.Log("zoom " + scrollInput);
 
         Vector3 offset = _cinemachineFollow.FollowOffset;
         offset.y += scrollInput * -_zoomSpeed * _zoomCurve.Evaluate(ZoomProgress);

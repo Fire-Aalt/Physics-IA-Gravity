@@ -144,6 +144,11 @@ public class SimulationManager : MonoBehaviour
             _realTime += deltaTime;
 		    _days = Mathf.FloorToInt((float)_realTime / (60f * 60f * 24f));
 
+
+            if (_days >= 365)
+            {
+                _realTime = (60f * 60f * 24f) * 365f;
+            }
             
             // Run simulation
             var stepDuration = _stepDuration.Get();
