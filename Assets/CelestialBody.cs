@@ -26,20 +26,20 @@ public class CelestialBody : MonoBehaviour
         trailRenderer = GetComponentInChildren<TrailRenderer>();
     }
 
-    private CelestialBodyData AsData(double realPositionOffset)
+    private CelestialBodyData AsData(double3 position)
     {
         return new CelestialBodyData
         {
             HashCode = GetHashCode(),
             Mass = realMass,
             Radius = realRadius,
-            Position = new double3(realPositionOffset, 0, 0)
+            Position = position
         };
     }
     
-    public CelestialBodyData Initialize(double realPositionOffset)
+    public CelestialBodyData Initialize(double3 position)
     {
-        var data = AsData(realPositionOffset);
+        var data = AsData(position);
         transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
         ApplyPresentationValues(data);
         trailRenderer?.Clear();

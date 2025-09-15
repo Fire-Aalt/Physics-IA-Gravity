@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -102,27 +103,41 @@ public class SimulationManager : MonoBehaviour
             
             var instance = Instantiate(config.celestialBodyPrefab);
             Bodies[i] = instance.GetComponent<CelestialBody>();
-            _bodiesData[i] = Bodies[i].Initialize(config.realPositionOffset + config.additionalOffset);
+
+            if (Bodies[i].name == "Moon(Clone)")
+            {
+                _bodiesData[i] = Bodies[i].Initialize(new double3(config.realPositionOffset, 0, config.additionalOffset));
+            }
+            else
+            {
+                _bodiesData[i] = Bodies[i].Initialize(new double3(config.realPositionOffset + config.additionalOffset, 0, 0));
+            }
         }
 
         // Set initial velocities
         for (var i = 0; i < _bodiesData.Length; i++)
         {
-            var bodyA = Bodies[i];
             ref var bodyAData = ref _bodiesData.ElementAt(i);
             for (var j = 0; j < _bodiesData.Length; j++)
             {
-                var bodyB = Bodies[j];
                 ref var bodyBData = ref _bodiesData.ElementAt(j);
                 if (bodyAData.Equals(bodyBData)) continue;
-
-                bodyA.transform.LookAt(bodyB.transform);
-
+        
+                var delta = bodyAData.Position - bodyBData.Position;
+                
+                var cross = math.cross(delta, math.up());
+                var direction = math.normalize(cross);
+                
                 var m2 = bodyBData.Mass;
                 var r = math.distance(bodyAData.Position, bodyBData.Position);
-                bodyAData.Velocity += bodyA.transform.right.AsDouble3()
-                                      * math.sqrt(m2 * FinalGravityConstant / r);
+                bodyAData.Velocity += direction * math.sqrt(m2 * FinalGravityConstant / r);
             }
+        }
+        
+        for (int i = 0; i < _bodiesData.Length; i++)
+        {
+            ref var bodyAData = ref _bodiesData.ElementAt(i);
+            Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), bodyAData.Velocity.AsVector3(), Color.blueViolet, 999f);
         }
         
         UIController.Instance.Restart();
@@ -176,6 +191,12 @@ public class SimulationManager : MonoBehaviour
             var bodyData = _bodiesData[i];
             body.ApplyPresentationValues(bodyData);
         }
+        
+        for (int i = 0; i < _bodiesData.Length; i++)
+        {
+            ref var bodyAData = ref _bodiesData.ElementAt(i);
+            Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), bodyAData.Velocity.AsVector3(), Color.green);
+        }
     }
     
     [BurstCompile]
@@ -189,8 +210,6 @@ public class SimulationManager : MonoBehaviour
         
         public double GravityConstant;
         public IntegrationMethod IntegrationMethod;
-
-        private double3 _previousMoonRelativePosition;
         
         public void Execute()
         {

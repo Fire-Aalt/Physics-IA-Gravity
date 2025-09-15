@@ -63,6 +63,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -84,6 +86,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -100,8 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 5.972e+24
-  realRadius: 6378000
+  realMass: 5.972168e+24
+  realRadius: 6371000
   doNotScaleTrail: 0
   trailRenderer: {fileID: 7885198350549424493}
 --- !u!1001 &790636284042055046
