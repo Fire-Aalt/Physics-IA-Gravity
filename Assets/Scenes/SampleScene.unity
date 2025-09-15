@@ -5031,7 +5031,7 @@ MonoBehaviour:
       y: 0
       z: 0
     addOffset: 1
-    angle: 40
+    angle: 40.5
     offsetKm: 384399
     realMassKg: 7.346e+22
     realDiameterKm: 3474
@@ -5063,8 +5063,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trailDuration:
-    unit: 5
-    time: 1
+    unit: 4
+    time: 10
   _minZoomWidth: 1
   _maxZoomWidth: 500
 --- !u!1 &1537450591
