@@ -19,7 +19,7 @@ public class SimulationManager : MonoBehaviour
     [Header("Units")]
     public TimeRange timeUnit;
     [SerializeField, NaughtyAttributes.ReadOnly] private double _lengthUnit;
-    [SerializeField, NaughtyAttributes.ReadOnly] private int _days;
+    [SerializeField, NaughtyAttributes.ReadOnly] private float _days;
     
     [Header("Constants")]
     [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.67430e-11;
@@ -41,8 +41,9 @@ public class SimulationManager : MonoBehaviour
 
     private NativeArray<CelestialBodyData> _bodiesData;
     private NativeReference<double> _lastStepTime;
-    private NativeList<double> _moonOrbitRotationEndTimes;
+    private NativeList<double> _earthOrbitRotationEndTimes;
     private double _realTime;
+    private bool _pause;
     
     private void OnValidate()
     {
@@ -69,7 +70,7 @@ public class SimulationManager : MonoBehaviour
         Bodies = new CelestialBody[configs.Count];
         _bodiesData = new NativeArray<CelestialBodyData>(configs.Count, Allocator.Persistent);
         _lastStepTime = new NativeReference<double>(0, Allocator.Persistent);
-        _moonOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
+        _earthOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
         
         InitSimulation();
     }
@@ -78,7 +79,7 @@ public class SimulationManager : MonoBehaviour
     {
         _bodiesData.Dispose();
         _lastStepTime.Dispose();
-        _moonOrbitRotationEndTimes.Dispose();
+        _earthOrbitRotationEndTimes.Dispose();
     }
 
     public void InitSimulation()
@@ -88,6 +89,7 @@ public class SimulationManager : MonoBehaviour
         _realTime = 0;
         _days = 0;
         _lastStepTime.Value = 0;
+        _earthOrbitRotationEndTimes.Clear();
 
         var found = FindObjectsByType<CelestialBody>(sortMode: FindObjectsSortMode.None);
         foreach (var body in found)
@@ -125,30 +127,27 @@ public class SimulationManager : MonoBehaviour
             }
         }
         
-        for (int i = 0; i < _bodiesData.Length; i++)
-        {
-            ref var bodyAData = ref _bodiesData.ElementAt(i);
-            Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), bodyAData.Velocity.AsVector3(), Color.blueViolet, 999f);
-        }
-        
         UIController.Instance.Restart();
     }
-
-    private bool _pause;
     
     private void Update()
     {
-        if (!_pause && _days < 365)
+        // const double oneYear = (60f * 60f * 24f) * 365.25636f;
+        // if (!_pause && _realTime < oneYear)
+        // {
+        //     var deltaTime = Time.deltaTime * FinalTimeScale;
+        //     _realTime += deltaTime;
+        //     _days = Mathf.FloorToInt((float)_realTime / (60f * 60f * 24f));
+        //     
+        //     if (_realTime >= oneYear)
+        //     {
+        //         _realTime = oneYear;
+        //     }
+        
+        if (!_pause)
         {
             var deltaTime = Time.deltaTime * FinalTimeScale;
             _realTime += deltaTime;
-		    _days = Mathf.FloorToInt((float)_realTime / (60f * 60f * 24f));
-
-
-            if (_days >= 365)
-            {
-                _realTime = (60f * 60f * 24f) * 365f;
-            }
             
             // Run simulation
             var stepDuration = _stepDuration.Get();
@@ -175,7 +174,8 @@ public class SimulationManager : MonoBehaviour
                     RealTime = _realTime,
                     StepDuration = stepDuration,
                     GravityConstant = FinalGravityConstant,
-                    IntegrationMethod = _integrationMethod
+                    IntegrationMethod = _integrationMethod,
+                    OrbitalPeriods = _earthOrbitRotationEndTimes
                 }.Schedule().Complete();
             }
             
@@ -186,6 +186,26 @@ public class SimulationManager : MonoBehaviour
                 var bodyData = _bodiesData[i];
                 body.ApplyPresentationValues(bodyData);
             }
+
+
+            const float toDays = 60f * 60f * 24f;
+
+            if (_earthOrbitRotationEndTimes.Length >= 1)
+            {
+                var prevTime = _earthOrbitRotationEndTimes.Length == 1 ? 0.0 : _earthOrbitRotationEndTimes[^2];
+                
+                var period = _earthOrbitRotationEndTimes[^1] - prevTime;
+                period = math.floor(period / toDays * 1000f) / 1000f;
+                
+                UIController.Instance.SetOrbitalPeriod((float)period);
+            }
+            else
+            {
+                UIController.Instance.SetOrbitalPeriod(0f);
+            }
+            
+            _days = Mathf.FloorToInt((float)_realTime / toDays);
+            UIController.Instance.SetTime(_days);
         }
         
         
@@ -213,6 +233,10 @@ public class SimulationManager : MonoBehaviour
         public double GravityConstant;
         public IntegrationMethod IntegrationMethod;
         
+        public NativeList<double> OrbitalPeriods;
+        private double3 _lastSunPosition;
+        private double3 _lastEarthPosition;
+        
         public void Execute()
         {
             while (RealTime > LastStepTime.Value + StepDuration)
@@ -224,6 +248,9 @@ public class SimulationManager : MonoBehaviour
 
         private void StepSimulation(double deltaTime)
         {
+            _lastSunPosition = Bodies[0].Position;
+            _lastEarthPosition = Bodies[1].Position;
+            
             if (IntegrationMethod == IntegrationMethod.VelocityVerlet)
             {
                 for (int i = 0; i < Bodies.Length; i++)
@@ -273,6 +300,11 @@ public class SimulationManager : MonoBehaviour
                 }
 
                 body.Force = default;
+            }
+
+            if (_lastEarthPosition.z < _lastSunPosition.z && Bodies[1].Position.z > Bodies[0].Position.z)
+            {
+                OrbitalPeriods.Add(LastStepTime.Value + deltaTime);
             }
         }
     }

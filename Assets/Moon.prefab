@@ -103,8 +103,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 7.346e+22
-  realRadius: 1737000
   doNotScaleTrail: 0
   trailRenderer: {fileID: 1637756387502400550}
 --- !u!1001 &8155815912710549709
@@ -158,6 +156,10 @@ PrefabInstance:
     - target: {fileID: 7424808331417751202, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
       propertyPath: m_Parameters.widthMultiplier

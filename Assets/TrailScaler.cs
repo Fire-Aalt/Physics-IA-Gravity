@@ -18,7 +18,7 @@ public class TrailScaler : MonoBehaviour
             var widthMult = Mathf.Lerp(_minZoomWidth, _maxZoomWidth, 1 - ScrollZoom.Instance.ZoomProgress);
             
             body.trailRenderer.widthMultiplier = Utils.ToSimulationLength(body.RealRadius * widthMult);
-            body.trailRenderer.time = (float)_trailDuration.Get() / (float)sim.FinalTimeScale;
+            body.trailRenderer.time = (float)_trailDuration.Get() / (float)sim.FinalTimeScale / Mathf.Sqrt((float)sim.gravityConstantMultiplier);
         }
     }
 }

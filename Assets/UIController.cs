@@ -19,9 +19,15 @@ public class UIController : MonoBehaviour
     [SerializeField] private TMP_InputField _gravityConstant;
     [SerializeField] private Button _restartButton;
     [SerializeField] private CinemachineCamera _cinemachineCamera;
-
+    
+    [SerializeField] private TextMeshProUGUI _timeText;
+    [SerializeField] private TextMeshProUGUI _orbitalPeriodText;
+    
     private bool _isSimulationInfoClosed;
     private SimulationManager Sim => SimulationManager.Instance;
+    
+    private float _period = -1f;
+    private float _days = -1f;
 
     private void Awake()
     {
@@ -50,6 +56,31 @@ public class UIController : MonoBehaviour
         
         _gravityConstant.text = (Sim.gravityConstantMultiplier * 100f) + "%";
         _gravityConstant.onEndEdit.AddListener(EndGravityConstant);
+    }
+    
+    public void SetOrbitalPeriod(float period)
+    {
+        if (_period != period)
+        {
+            if (period == 0f)
+            {
+                _orbitalPeriodText.text = "Orbital Period: Nan";
+            }
+            else
+            {
+                _orbitalPeriodText.text = $"Orbital Period: {period} Days";
+            }
+            _period = period;
+        }
+    }
+    
+    public void SetTime(float days)
+    {
+        if (_days != days)
+        {
+            _timeText.text = $"Elapsed: {days} Days";
+            _days = days;
+        }
     }
 
     public void Restart()
