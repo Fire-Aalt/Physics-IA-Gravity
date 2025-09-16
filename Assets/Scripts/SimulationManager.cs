@@ -13,10 +13,7 @@ using Vector3 = UnityEngine.Vector3;
 public class SimulationManager : MonoBehaviour
 {
     public static SimulationManager Instance { get; private set; }
-    public static double LengthUnit { get; private set; }
-    
-    [Header("Controller")]
-    public CelestialBody relativeBody;
+    public static double LengthUnit => Instance._lengthUnit;
     
     [Header("Units")]
     public TimeRange timeUnit;
@@ -49,18 +46,6 @@ public class SimulationManager : MonoBehaviour
     private void OnValidate()
     {
         ValidateValues();
-
-        if (Application.isPlaying || settings ==null) return;
-
-        if (relativeBody != null)
-        {
-            LengthUnit = settings.configs.First(c => c.celestialBodyPrefab == relativeBody.gameObject).realDiameterKm * 1000.0 / 2.0;
-            _lengthUnit = LengthUnit;
-        }
-        else
-        {
-            LengthUnit = _lengthUnit;
-        }
     }
 
     public void ValidateValues()
