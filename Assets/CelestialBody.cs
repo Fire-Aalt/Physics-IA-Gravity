@@ -53,24 +53,17 @@ public class CelestialBody : MonoBehaviour
     {
         transform.position = Utils.ToSimulationLength(celestialBodyData.Position);
 
-        CelestialBodyData other = default;
-        
-        if (i == 0)
+        var other = i switch
         {
-            other = SimulationManager.Instance.BodiesData[1];
-        }
-        else if (i == 1)
-        {
-            other = SimulationManager.Instance.BodiesData[0];
-        }
-        else if (i == 2)
-        {
-            other = SimulationManager.Instance.BodiesData[1];
-        }
+            0 => SimulationManager.Instance.BodiesData[1],
+            1 => SimulationManager.Instance.BodiesData[0],
+            2 => SimulationManager.Instance.BodiesData[1],
+            _ => default
+        };
 
         var gravForce = Utils.CalculateGravitationalForce(celestialBodyData, other, SimulationManager.Instance.FinalGravityConstant).AsVector3();
         
-        gravityForce.SetPosition(1, gravForce * math.pow(10f, -19f) / transform.lossyScale.x);
+        gravityForce.SetPosition(1, gravForce * math.pow(10f, -20f) / transform.lossyScale.x);
         velocity.SetPosition(1, celestialBodyData.Velocity.AsVector3() * 0.03f / transform.lossyScale.x);
     }
 }

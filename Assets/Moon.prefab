@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trailSize: 1
+  trailSize: 2
   trailRenderer: {fileID: 1637756387502400550}
   gravityForce: {fileID: 7931722446316051639}
   velocity: {fileID: 6176959741371434815}
@@ -166,6 +166,26 @@ PrefabInstance:
     - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
       propertyPath: m_Parameters.widthMultiplier
       value: 0.27240515
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.colorGradient.key0.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.colorGradient.key1.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+      propertyPath: m_Parameters.colorGradient.m_ColorSpace
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

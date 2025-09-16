@@ -5194,8 +5194,9 @@ MonoBehaviour:
   _trailDuration:
     unit: 4
     time: 10
-  _minZoomWidth: 1
+  _minZoomWidth: 0.05
   _maxZoomWidth: 500
+  _vectorWidth: 0.05
 --- !u!1 &1505673329
 GameObject:
   m_ObjectHideFlags: 0
