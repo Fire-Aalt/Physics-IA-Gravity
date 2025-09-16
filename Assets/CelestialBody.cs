@@ -1,19 +1,18 @@
 using System;
-using NaughtyAttributes;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class CelestialBody : MonoBehaviour
 {
     [Header("Debug")]
-    [SerializeField] private bool doNotScaleTrail;
+    public float trailSize;
     
     [HideInInspector] public TrailRenderer trailRenderer;
+
+    public LineRenderer gravityForce;
+    public LineRenderer velocity;
     
     public double RealRadius { get; private set; }
-    
-    public bool DoNotScaleTrail => doNotScaleTrail;
 
     private void Awake()
     {
@@ -39,20 +38,40 @@ public class CelestialBody : MonoBehaviour
         };
     }
     
-    public CelestialBodyData Initialize(CelestialBodyConfig config)
+    public CelestialBodyData Initialize(CelestialBodyConfig config, int i)
     {
         RealRadius = config.realDiameterKm * 1000.0 / 2.0;
         var data = AsData(config);
         transform.localScale = Utils.ToSimulationLength(RealRadius) * Vector3.one;
-        ApplyPresentationValues(data);
+        ApplyPresentationValues(data, i);
         trailRenderer?.Clear();
 
         return data;
     }
 
-    public void ApplyPresentationValues(CelestialBodyData celestialBodyData)
+    public void ApplyPresentationValues(CelestialBodyData celestialBodyData, int i)
     {
         transform.position = Utils.ToSimulationLength(celestialBodyData.Position);
+
+        CelestialBodyData other = default;
+        
+        if (i == 0)
+        {
+            other = SimulationManager.Instance.BodiesData[1];
+        }
+        else if (i == 1)
+        {
+            other = SimulationManager.Instance.BodiesData[0];
+        }
+        else if (i == 2)
+        {
+            other = SimulationManager.Instance.BodiesData[1];
+        }
+
+        var gravForce = Utils.CalculateGravitationalForce(celestialBodyData, other, SimulationManager.Instance.FinalGravityConstant).AsVector3();
+        
+        gravityForce.SetPosition(1, gravForce * math.pow(10f, -19f) / transform.lossyScale.x);
+        velocity.SetPosition(1, celestialBodyData.Velocity.AsVector3() * 0.03f / transform.lossyScale.x);
     }
 }
 

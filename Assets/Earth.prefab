@@ -27,8 +27,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7851642107736680174}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 23762.934, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -103,10 +103,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  realMass: 5.972168e+24
-  realRadius: 6371000
-  doNotScaleTrail: 0
+  trailSize: 1
   trailRenderer: {fileID: 7885198350549424493}
+  gravityForce: {fileID: 1568522970922656252}
+  velocity: {fileID: 3345990865941101172}
 --- !u!1001 &790636284042055046
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -192,6 +192,16 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+--- !u!120 &1568522970922656252 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 2250784784319917178, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 790636284042055046}
+  m_PrefabAsset: {fileID: 0}
+--- !u!120 &3345990865941101172 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 2636786612100560882, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 790636284042055046}
+  m_PrefabAsset: {fileID: 0}
 --- !u!96 &7885198350549424493 stripped
 TrailRenderer:
   m_CorrespondingSourceObject: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}

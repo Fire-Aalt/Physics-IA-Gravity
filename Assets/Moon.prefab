@@ -27,9 +27,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1014971039017154629}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 23823.203, y: 0, z: 0}
-  m_LocalScale: {x: 0.27240515, y: 0.27240515, z: 0.27240515}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1595805384018443887}
@@ -103,8 +103,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7d8eb12aaf43a4bad1a95aabba5b87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  doNotScaleTrail: 0
+  trailSize: 1
   trailRenderer: {fileID: 1637756387502400550}
+  gravityForce: {fileID: 7931722446316051639}
+  velocity: {fileID: 6176959741371434815}
 --- !u!1001 &8155815912710549709
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -178,5 +180,15 @@ Transform:
 --- !u!96 &1637756387502400550 stripped
 TrailRenderer:
   m_CorrespondingSourceObject: {fileID: 7463939704692544747, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 8155815912710549709}
+  m_PrefabAsset: {fileID: 0}
+--- !u!120 &6176959741371434815 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 2636786612100560882, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
+  m_PrefabInstance: {fileID: 8155815912710549709}
+  m_PrefabAsset: {fileID: 0}
+--- !u!120 &7931722446316051639 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 2250784784319917178, guid: 84c205db38f91d342bdcd280dcc66c6d, type: 3}
   m_PrefabInstance: {fileID: 8155815912710549709}
   m_PrefabAsset: {fileID: 0}

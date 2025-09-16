@@ -20,7 +20,7 @@ public class SimulationManager : MonoBehaviour
     
     [Header("Units")]
     public TimeRange timeUnit;
-    [SerializeField, NaughtyAttributes.ReadOnly] private double _lengthUnit;
+    [SerializeField] private double _lengthUnit;
     
     [Header("Constants")]
     [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.67430e-11;
@@ -39,10 +39,10 @@ public class SimulationManager : MonoBehaviour
     public bool IsSimulationPaused { get; private set; }
 
     public CelestialBody[] Bodies { get; private set; }
+    public NativeArray<CelestialBodyData> BodiesData;
     public NativeList<double> EarthOrbitRotationEndTimes { get; private set; }
     public double RealTime { get; private set; }
 
-    private NativeArray<CelestialBodyData> _bodiesData;
     private NativeReference<double> _lastStepTime;
     private bool _pause;
     
@@ -51,9 +51,16 @@ public class SimulationManager : MonoBehaviour
         ValidateValues();
 
         if (Application.isPlaying || settings ==null) return;
-        
-        LengthUnit = settings.configs.First(c => c.celestialBodyPrefab == relativeBody.gameObject).realDiameterKm * 1000.0 / 2.0;
-        _lengthUnit = LengthUnit;
+
+        if (relativeBody != null)
+        {
+            LengthUnit = settings.configs.First(c => c.celestialBodyPrefab == relativeBody.gameObject).realDiameterKm * 1000.0 / 2.0;
+            _lengthUnit = LengthUnit;
+        }
+        else
+        {
+            LengthUnit = _lengthUnit;
+        }
     }
 
     public void ValidateValues()
@@ -69,7 +76,7 @@ public class SimulationManager : MonoBehaviour
     private void Start()
     {
         Bodies = new CelestialBody[settings.configs.Count];
-        _bodiesData = new NativeArray<CelestialBodyData>(settings.configs.Count, Allocator.Persistent);
+        BodiesData = new NativeArray<CelestialBodyData>(settings.configs.Count, Allocator.Persistent);
         _lastStepTime = new NativeReference<double>(0, Allocator.Persistent);
         EarthOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
         
@@ -78,14 +85,14 @@ public class SimulationManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        _bodiesData.Dispose();
+        BodiesData.Dispose();
         _lastStepTime.Dispose();
         EarthOrbitRotationEndTimes.Dispose();
     }
 
     public void InitSimulation()
     {
-        Assert.IsTrue(settings.configs.Count == Bodies.Length && settings.configs.Count == _bodiesData.Length);
+        Assert.IsTrue(settings.configs.Count == Bodies.Length && settings.configs.Count == BodiesData.Length);
 
         RealTime = 0;
         _lastStepTime.Value = 0;
@@ -104,16 +111,22 @@ public class SimulationManager : MonoBehaviour
             
             var instance = Instantiate(config.celestialBodyPrefab);
             Bodies[i] = instance.GetComponent<CelestialBody>();
-            _bodiesData[i] = Bodies[i].Initialize(config);
+        }
+        
+        for (var i = 0; i < settings.configs.Count; i++)
+        {
+            var config = settings.configs[i];
+            
+            BodiesData[i] = Bodies[i].Initialize(config, i);
         }
 
         // Set initial velocities
-        for (var i = 0; i < _bodiesData.Length; i++)
+        for (var i = 0; i < BodiesData.Length; i++)
         {
-            ref var bodyAData = ref _bodiesData.ElementAt(i);
-            for (var j = 0; j < _bodiesData.Length; j++)
+            ref var bodyAData = ref BodiesData.ElementAt(i);
+            for (var j = 0; j < BodiesData.Length; j++)
             {
-                ref var bodyBData = ref _bodiesData.ElementAt(j);
+                ref var bodyBData = ref BodiesData.ElementAt(j);
                 if (bodyAData.Equals(bodyBData)) continue;
         
                 var delta = bodyAData.Position - bodyBData.Position;
@@ -157,7 +170,7 @@ public class SimulationManager : MonoBehaviour
                 
                 new SimulationJob
                 {
-                    Bodies = _bodiesData,
+                    Bodies = BodiesData,
                     LastStepTime = _lastStepTime,
                     RealTime = RealTime,
                     StepDuration = stepDuration,
@@ -171,14 +184,14 @@ public class SimulationManager : MonoBehaviour
             for (var i = 0; i < Bodies.Length; i++)
             {
                 var body = Bodies[i];
-                var bodyData = _bodiesData[i];
-                body.ApplyPresentationValues(bodyData);
+                var bodyData = BodiesData[i];
+                body.ApplyPresentationValues(bodyData, i);
             }
         }
         
-        for (int i = 0; i < _bodiesData.Length; i++)
+        for (int i = 0; i < BodiesData.Length; i++)
         {
-            ref var bodyAData = ref _bodiesData.ElementAt(i);
+            ref var bodyAData = ref BodiesData.ElementAt(i);
             Debug.DrawRay(Utils.ToSimulationLength(bodyAData.Position), bodyAData.Velocity.AsVector3(), Color.green);
 
             if (i == 0)
@@ -231,14 +244,12 @@ public class SimulationManager : MonoBehaviour
             for (int i = 0; i < Bodies.Length; i++)
             {
                 ref var bodyA = ref Bodies.ElementAt(i);
+                
                 for (int j = i + 1; j < Bodies.Length; j++)
                 {
                     ref var bodyB = ref Bodies.ElementAt(j);
                     
-                    var delta = bodyB.Position - bodyA.Position;
-                    var distSqr = math.lengthsq(delta);
-                    var forceMagnitude = GravityConstant * (bodyA.Mass * bodyB.Mass) / distSqr;
-                    var force = math.normalize(delta) * forceMagnitude;
+                    var force = Utils.CalculateGravitationalForce(bodyA, bodyB, GravityConstant);
                     
                     bodyA.Force += force;
                     bodyB.Force -= force;
@@ -265,7 +276,7 @@ public class SimulationManager : MonoBehaviour
                     // pos += v * dt
                     body.Position += body.Velocity * deltaTime;
                 }
-
+                
                 body.Force = default;
             }
 
