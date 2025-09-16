@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c9b360bf25b42f2969b1a64a6b6c70d, type: 3}
+  m_Name: SunEarthMoon
+  m_EditorClassIdentifier: Assembly-CSharp::SimulationConfigSO
+  configs:
+  - celestialBodyPrefab: {fileID: 6319522104069085211, guid: 02c104491ba86554888cc99dfed19d24, type: 3}
+    realPositionKm:
+      x: 0
+      y: 0
+      z: 0
+    addOffset: 0
+    angle: 0
+    offsetKm: 0
+    realMassKg: 1.9885e+30
+    realDiameterKm: 1391400
+  - celestialBodyPrefab: {fileID: 7851642107736680174, guid: db516d1bffdd1fa48ad9368ab727ec94, type: 3}
+    realPositionKm:
+      x: 149597870.7
+      y: 0
+      z: 0
+    addOffset: 0
+    angle: 0
+    offsetKm: 0
+    realMassKg: 5.972168e+24
+    realDiameterKm: 12742
+  - celestialBodyPrefab: {fileID: 1014971039017154629, guid: c24b71445403ea147ab11ff61b15d860, type: 3}
+    realPositionKm:
+      x: 149597870.7
+      y: 0
+      z: 0
+    addOffset: 1
+    angle: 35.325
+    offsetKm: 384399
+    realMassKg: 7.346e+22
+    realDiameterKm: 3474

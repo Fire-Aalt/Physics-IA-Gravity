@@ -57,7 +57,30 @@ public class UIController : MonoBehaviour
         _gravityConstant.text = (Sim.gravityConstantMultiplier * 100f) + "%";
         _gravityConstant.onEndEdit.AddListener(EndGravityConstant);
     }
-    
+
+    private void Update()
+    {
+        const float toDays = 60f * 60f * 24f;
+
+        var rotationTimings = Sim.EarthOrbitRotationEndTimes;
+        
+        if (rotationTimings.Length >= 1)
+        {
+            var prevTime = rotationTimings.Length == 1 ? 0.0 : rotationTimings[^2];
+                
+            var period = rotationTimings[^1] - prevTime;
+            period = math.floor(period / toDays * 1000f) / 1000f;
+                
+            SetOrbitalPeriod((float)period);
+        }
+        else
+        {
+            SetOrbitalPeriod(0f);
+        }
+        
+        SetTime(Mathf.FloorToInt((float)Sim.RealTime / toDays));
+    }
+
     public void SetOrbitalPeriod(float period)
     {
         if (_period != period)
