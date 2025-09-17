@@ -20,7 +20,7 @@ public class SimulationManager : MonoBehaviour
     [SerializeField] private double _lengthUnit;
     
     [Header("Constants")]
-    [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.67430e-11;
+    [SerializeField, NaughtyAttributes.ReadOnly] private double _gravityConstant = 6.674e-11;
     public double gravityConstantMultiplier;
     [SerializeField, NaughtyAttributes.ReadOnly] private double _finalGravityConstant;
 
@@ -191,6 +191,7 @@ public class SimulationManager : MonoBehaviour
     {
         public NativeArray<CelestialBodyData> Bodies;
         public NativeReference<double> LastStepTime;
+        public NativeList<double> OrbitalPeriods;
         
         public double RealTime;
         public double StepDuration;
@@ -198,7 +199,6 @@ public class SimulationManager : MonoBehaviour
         public double GravityConstant;
         public IntegrationMethod IntegrationMethod;
         
-        public NativeList<double> OrbitalPeriods;
         private double3 _lastSunPosition;
         private double3 _lastEarthPosition;
         
@@ -216,16 +216,7 @@ public class SimulationManager : MonoBehaviour
             _lastSunPosition = Bodies[0].Position;
             _lastEarthPosition = Bodies[1].Position;
             
-            if (IntegrationMethod == IntegrationMethod.VelocityVerlet)
-            {
-                for (int i = 0; i < Bodies.Length; i++)
-                {
-                    ref var body = ref Bodies.ElementAt(i);
-                    // x_{n+1} = x_n + v_n*dt + 0.5*a_n*dt^2
-                    body.Position += body.Velocity * deltaTime + 0.5f * body.Acceleration * deltaTime * deltaTime;
-                }
-            }
-
+            // Gravitational force
             for (int i = 0; i < Bodies.Length; i++)
             {
                 ref var bodyA = ref Bodies.ElementAt(i);
@@ -241,38 +232,36 @@ public class SimulationManager : MonoBehaviour
                 }
             }
 
+            // Integration
             for (int i = 0; i < Bodies.Length; i++)
             {
                 ref var body = ref Bodies.ElementAt(i);
-                // a = F / m
                 var newAcceleration = body.Force / body.Mass;
-                
+
                 if (IntegrationMethod == IntegrationMethod.VelocityVerlet)
                 {
-                    // v_{n+1} = v_n + 0.5*(a_n + a_{n+1})*dt
-                    body.Velocity += 0.5f * (body.Acceleration + newAcceleration) * deltaTime;
-
+                    body.Position += body.Velocity * deltaTime + body.Acceleration * (deltaTime * deltaTime * 0.5f);
                     body.Acceleration = newAcceleration;
+                    body.Velocity += (body.Acceleration + newAcceleration) * (deltaTime * 0.5f);
                 }
                 else if (IntegrationMethod == IntegrationMethod.Euler)
                 {
-                    // v += a * dt
                     body.Velocity += newAcceleration * deltaTime;
-                    // pos += v * dt
                     body.Position += body.Velocity * deltaTime;
                 }
                 
                 body.Force = default;
             }
 
+            // Orbital Period 360 rotation check
             if (_lastEarthPosition.z < _lastSunPosition.z && Bodies[1].Position.z > Bodies[0].Position.z)
             {
                 OrbitalPeriods.Add(LastStepTime.Value + deltaTime);
             }
         }
     }
-    
-    public enum IntegrationMethod
+
+    private enum IntegrationMethod
     {
         Euler,
         [InspectorName("Velocity Verlet (a.k.a. leapfrog)")]
