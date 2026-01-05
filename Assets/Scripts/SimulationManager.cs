@@ -38,6 +38,7 @@ public class SimulationManager : MonoBehaviour
     public CelestialBody[] Bodies { get; private set; }
     public NativeArray<CelestialBodyData> BodiesData;
     public NativeList<double> EarthOrbitRotationEndTimes { get; private set; }
+    public NativeList<double> MoonOrbitRotationEndTimes { get; private set; }
     public double RealTime { get; private set; }
 
     private NativeReference<double> _lastStepTime;
@@ -64,6 +65,7 @@ public class SimulationManager : MonoBehaviour
         BodiesData = new NativeArray<CelestialBodyData>(settings.configs.Count, Allocator.Persistent);
         _lastStepTime = new NativeReference<double>(0, Allocator.Persistent);
         EarthOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
+        MoonOrbitRotationEndTimes = new NativeList<double>(8, Allocator.Persistent);
         
         InitSimulation();
     }
@@ -73,6 +75,7 @@ public class SimulationManager : MonoBehaviour
         BodiesData.Dispose();
         _lastStepTime.Dispose();
         EarthOrbitRotationEndTimes.Dispose();
+        MoonOrbitRotationEndTimes.Dispose();
     }
 
     public void InitSimulation()
@@ -82,6 +85,7 @@ public class SimulationManager : MonoBehaviour
         RealTime = 0;
         _lastStepTime.Value = 0;
         EarthOrbitRotationEndTimes.Clear();
+        MoonOrbitRotationEndTimes.Clear();
 
         var found = FindObjectsByType<CelestialBody>(sortMode: FindObjectsSortMode.None);
         foreach (var body in found)
@@ -158,7 +162,8 @@ public class SimulationManager : MonoBehaviour
                     StepDuration = stepDuration,
                     GravityConstant = FinalGravityConstant,
                     IntegrationMethod = _integrationMethod,
-                    EarthOrbitalPeriods = EarthOrbitRotationEndTimes
+                    EarthOrbitalPeriods = EarthOrbitRotationEndTimes,
+                    MoonOrbitalPeriods = MoonOrbitRotationEndTimes
                 }.Schedule().Complete();
             }
             
@@ -189,6 +194,7 @@ public class SimulationManager : MonoBehaviour
         public NativeArray<CelestialBodyData> Bodies;
         public NativeReference<double> LastStepTime;
         public NativeList<double> EarthOrbitalPeriods;
+        public NativeList<double> MoonOrbitalPeriods;
         
         public double RealTime;
         public double StepDuration;
@@ -198,6 +204,7 @@ public class SimulationManager : MonoBehaviour
         
         private double3 _lastSunPosition;
         private double3 _lastEarthPosition;
+        private double3 _lastMoonPosition;
         
         public void Execute()
         {
@@ -212,6 +219,7 @@ public class SimulationManager : MonoBehaviour
         {
             _lastSunPosition = Bodies[0].Position;
             _lastEarthPosition = Bodies[1].Position;
+            _lastMoonPosition = Bodies[2].Position;
             
             // Gravitational force
             for (int i = 0; i < Bodies.Length; i++)
@@ -254,6 +262,10 @@ public class SimulationManager : MonoBehaviour
             if (_lastEarthPosition.z < _lastSunPosition.z && Bodies[1].Position.z > Bodies[0].Position.z)
             {
                 EarthOrbitalPeriods.Add(LastStepTime.Value + deltaTime);
+            }
+            if (_lastMoonPosition.z < _lastEarthPosition.z && Bodies[2].Position.z > Bodies[1].Position.z)
+            {
+                MoonOrbitalPeriods.Add(LastStepTime.Value + deltaTime);
             }
         }
     }

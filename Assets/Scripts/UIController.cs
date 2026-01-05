@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Cinemachine;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,11 +23,13 @@ public class UIController : MonoBehaviour
     
     [SerializeField] private TextMeshProUGUI _timeText;
     [SerializeField] private TextMeshProUGUI _earthOrbitalPeriodText;
+    [SerializeField] private TextMeshProUGUI _moonOrbitalPeriodText;
     
     private bool _isSimulationInfoClosed;
     private SimulationManager Sim => SimulationManager.Instance;
     
     private float _earthPeriod = -1f;
+    private float _moonPeriod = -1f;
     private float _days = -1f;
 
     private void Awake()
@@ -62,23 +65,50 @@ public class UIController : MonoBehaviour
     {
         const float toDays = 60f * 60f * 24f;
 
-        var rotationTimings = Sim.EarthOrbitRotationEndTimes;
+        ShowOrbitalPeriod(toDays, Sim.EarthOrbitRotationEndTimes, SetEarthOrbitalPeriod);
+        ShowOrbitalPeriod(toDays, Sim.MoonOrbitRotationEndTimes, SetMoonOrbitalPeriod);
         
-        if (rotationTimings.Length >= 1)
+        SetTime(Mathf.FloorToInt((float)Sim.RealTime / toDays));
+    }
+
+    private void ShowOrbitalPeriod(float toDays, NativeList<double> specificOrbitalPeriodEndTimes, Action<float> setSpecificOrbitalPeriod)
+    {
+        if (specificOrbitalPeriodEndTimes.Length >= 1)
         {
-            var prevTime = rotationTimings.Length == 1 ? 0.0 : rotationTimings[^2];
-                
-            var period = rotationTimings[^1] - prevTime;
+            const int averageCount = 100;
+
+
+            var length = specificOrbitalPeriodEndTimes.Length;
+
+            var period = 0.0;
+            if (length - averageCount - 1 >= 0)
+            {
+                var prevTime = specificOrbitalPeriodEndTimes[length - averageCount - 1];
+                for (int i = length - averageCount; i < length; i++)
+                {
+                    period += specificOrbitalPeriodEndTimes[i] - prevTime;
+                    prevTime = specificOrbitalPeriodEndTimes[i];
+                }
+            }
+            else
+            {
+                var prevTime = 0.0;
+                for (int i = 0; i < length; i++)
+                {
+                    period += specificOrbitalPeriodEndTimes[i] - prevTime;
+                    prevTime = specificOrbitalPeriodEndTimes[i];
+                }
+            }
+            
+            period /= math.min(averageCount, length);
             period = math.floor(period / toDays * 1000f) / 1000f;
-                
-            SetEarthOrbitalPeriod((float)period);
+            
+            setSpecificOrbitalPeriod.Invoke((float)period);
         }
         else
         {
-            SetEarthOrbitalPeriod(0f);
+            setSpecificOrbitalPeriod.Invoke(0f);
         }
-        
-        SetTime(Mathf.FloorToInt((float)Sim.RealTime / toDays));
     }
 
     public void SetEarthOrbitalPeriod(float period)
@@ -94,6 +124,22 @@ public class UIController : MonoBehaviour
                 _earthOrbitalPeriodText.text = $"Earth Orbital Period: {period} Days";
             }
             _earthPeriod = period;
+        }
+    }
+    
+    public void SetMoonOrbitalPeriod(float period)
+    {
+        if (_moonPeriod != period)
+        {
+            if (period == 0f)
+            {
+                _moonOrbitalPeriodText.text = "Moon Orbital Period: Nan";
+            }
+            else
+            {
+                _moonOrbitalPeriodText.text = $"Moon Orbital Period: {period} Days";
+            }
+            _moonPeriod = period;
         }
     }
     
