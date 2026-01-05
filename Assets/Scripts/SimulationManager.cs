@@ -106,28 +106,25 @@ public class SimulationManager : MonoBehaviour
         }
 
         // Set initial velocities
-        for (var i = 0; i < BodiesData.Length; i++)
-        {
-            ref var bodyAData = ref BodiesData.ElementAt(i);
-            for (var j = 0; j < BodiesData.Length; j++)
-            {
-                ref var bodyBData = ref BodiesData.ElementAt(j);
-                if (bodyAData.Equals(bodyBData)) continue;
+        ApplyInitialVelocity(BodiesData[0], ref BodiesData.ElementAt(1));
+        ApplyInitialVelocity(BodiesData[1], ref BodiesData.ElementAt(2));
         
-                var delta = bodyAData.Position - bodyBData.Position;
-                
-                var cross = math.cross(delta, math.up());
-                var direction = math.normalize(cross);
-                
-                var m2 = bodyBData.Mass;
-                var r = math.distance(bodyAData.Position, bodyBData.Position);
-                bodyAData.Velocity += direction * math.sqrt(m2 * FinalGravityConstant / r);
-            }
-        }
-         
         UIController.Instance.Restart();
     }
-    
+
+    private void ApplyInitialVelocity(in CelestialBodyData greaterBody, ref CelestialBodyData smallerBody)
+    {
+        var delta = smallerBody.Position - greaterBody.Position;
+        
+        var cross = math.cross(delta, math.up());
+        var direction = math.normalize(cross);
+        
+        //var m2 = greaterBody.Mass;
+        var m2 = greaterBody.Mass + smallerBody.Mass;
+        var r = math.distance(greaterBody.Position, smallerBody.Position);
+        smallerBody.Velocity += greaterBody.Velocity + direction * math.sqrt(m2 * FinalGravityConstant / r);
+    }
+
     private void Update()
     {
         if (!_pause)
@@ -139,7 +136,7 @@ public class SimulationManager : MonoBehaviour
             var stepDuration = _stepDuration.Get();
             if (RealTime > _lastStepTime.Value + stepDuration)
             {
-                const int maxStepsPerSecond = 10_000_000;
+                const int maxStepsPerSecond = 100_000_000;
                 
                 var remainingTime = RealTime - _lastStepTime.Value;
                 var stepsNeeded = (int)(remainingTime / stepDuration);
@@ -161,7 +158,7 @@ public class SimulationManager : MonoBehaviour
                     StepDuration = stepDuration,
                     GravityConstant = FinalGravityConstant,
                     IntegrationMethod = _integrationMethod,
-                    OrbitalPeriods = EarthOrbitRotationEndTimes
+                    EarthOrbitalPeriods = EarthOrbitRotationEndTimes
                 }.Schedule().Complete();
             }
             
@@ -191,7 +188,7 @@ public class SimulationManager : MonoBehaviour
     {
         public NativeArray<CelestialBodyData> Bodies;
         public NativeReference<double> LastStepTime;
-        public NativeList<double> OrbitalPeriods;
+        public NativeList<double> EarthOrbitalPeriods;
         
         public double RealTime;
         public double StepDuration;
@@ -256,7 +253,7 @@ public class SimulationManager : MonoBehaviour
             // Orbital Period 360 rotation check
             if (_lastEarthPosition.z < _lastSunPosition.z && Bodies[1].Position.z > Bodies[0].Position.z)
             {
-                OrbitalPeriods.Add(LastStepTime.Value + deltaTime);
+                EarthOrbitalPeriods.Add(LastStepTime.Value + deltaTime);
             }
         }
     }

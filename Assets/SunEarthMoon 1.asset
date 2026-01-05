@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c9b360bf25b42f2969b1a64a6b6c70d, type: 3}
-  m_Name: SunEarthMoon
+  m_Name: SunEarthMoon 1
   m_EditorClassIdentifier: Assembly-CSharp::SimulationConfigSO
   configs:
   - celestialBodyPrefab: {fileID: 6319522104069085211, guid: 02c104491ba86554888cc99dfed19d24, type: 3}
@@ -39,7 +39,7 @@ MonoBehaviour:
       y: 0
       z: 0
     addOffset: 1
-    angle: 291
+    angle: 90
     offsetKm: 384399
     realMassKg: 7.346e+22
     realDiameterKm: 3474

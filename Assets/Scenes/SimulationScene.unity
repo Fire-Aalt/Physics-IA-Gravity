@@ -216,13 +216,14 @@ RectTransform:
   m_Children:
   - {fileID: 105927338}
   - {fileID: 1040288746}
+  - {fileID: 1046952078}
   m_Father: {fileID: 2055928566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1616, y: -52}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -29, y: -25.804932}
   m_SizeDelta: {x: 550, y: 52.39}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 1}
 --- !u!114 &18162199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -597,7 +598,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 8.700012, y: 0}
+  m_AnchoredPosition: {x: 8.699951, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &105927339
@@ -1384,7 +1385,7 @@ GameObject:
   - component: {fileID: 354602558}
   - component: {fileID: 354602560}
   m_Layer: 5
-  m_Name: OrbitalPeriod
+  m_Name: EarthOrbitalPeriod
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1406,7 +1407,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 20, y: 65}
+  m_AnchoredPosition: {x: 20, y: 62}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &354602558
@@ -1776,14 +1777,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -3563,7 +3564,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1046952077}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3571,11 +3572,11 @@ RectTransform:
   - {fileID: 387748883}
   - {fileID: 1410597768}
   - {fileID: 77886971}
-  m_Father: {fileID: 2055928566}
+  m_Father: {fileID: 18162198}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -29, y: -84.40509}
+  m_AnchoredPosition: {x: 0, y: -58.600098}
   m_SizeDelta: {x: 550, y: 315.53}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1046952079
@@ -5151,15 +5152,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6dac4e25dc46f7898b6720c3edbfe1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  relativeBody: {fileID: 0}
   timeUnit:
     unit: 4
-    time: 1
+    time: 3
   _lengthUnit: 100000000
   _gravityConstant: 0.000000000066743
   gravityConstantMultiplier: 1
   _finalGravityConstant: 0.000000000066743
-  _integrationMethod: 1
+  _integrationMethod: 0
   _stepDuration:
     unit: 1
     time: 1
@@ -6441,7 +6441,6 @@ RectTransform:
   m_Children:
   - {fileID: 301419910}
   - {fileID: 18162198}
-  - {fileID: 1046952078}
   - {fileID: 354602557}
   - {fileID: 1505673330}
   m_Father: {fileID: 0}
@@ -6472,7 +6471,7 @@ MonoBehaviour:
   _restartButton: {fileID: 77886972}
   _cinemachineCamera: {fileID: 454816458}
   _timeText: {fileID: 1505673332}
-  _orbitalPeriodText: {fileID: 354602558}
+  _earthOrbitalPeriodText: {fileID: 354602558}
 --- !u!1 &2089917585
 GameObject:
   m_ObjectHideFlags: 0

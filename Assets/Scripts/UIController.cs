@@ -21,12 +21,12 @@ public class UIController : MonoBehaviour
     [SerializeField] private CinemachineCamera _cinemachineCamera;
     
     [SerializeField] private TextMeshProUGUI _timeText;
-    [SerializeField] private TextMeshProUGUI _orbitalPeriodText;
+    [SerializeField] private TextMeshProUGUI _earthOrbitalPeriodText;
     
     private bool _isSimulationInfoClosed;
     private SimulationManager Sim => SimulationManager.Instance;
     
-    private float _period = -1f;
+    private float _earthPeriod = -1f;
     private float _days = -1f;
 
     private void Awake()
@@ -71,29 +71,29 @@ public class UIController : MonoBehaviour
             var period = rotationTimings[^1] - prevTime;
             period = math.floor(period / toDays * 1000f) / 1000f;
                 
-            SetOrbitalPeriod((float)period);
+            SetEarthOrbitalPeriod((float)period);
         }
         else
         {
-            SetOrbitalPeriod(0f);
+            SetEarthOrbitalPeriod(0f);
         }
         
         SetTime(Mathf.FloorToInt((float)Sim.RealTime / toDays));
     }
 
-    public void SetOrbitalPeriod(float period)
+    public void SetEarthOrbitalPeriod(float period)
     {
-        if (_period != period)
+        if (_earthPeriod != period)
         {
             if (period == 0f)
             {
-                _orbitalPeriodText.text = "Orbital Period: Nan";
+                _earthOrbitalPeriodText.text = "Earth Orbital Period: Nan";
             }
             else
             {
-                _orbitalPeriodText.text = $"Orbital Period: {period} Days";
+                _earthOrbitalPeriodText.text = $"Earth Orbital Period: {period} Days";
             }
-            _period = period;
+            _earthPeriod = period;
         }
     }
     
