@@ -25,9 +25,9 @@ public class CelestialBody : MonoBehaviour
         if (config.addOffset)
         {
             positionKm += config.offsetKm * new double3(
-                math.sin(math.radians(config.angle)),
+                math.cos(math.radians(config.angle)),
                 0,
-                math.cos(math.radians(config.angle)));
+                math.sin(math.radians(config.angle)));
         }
         
         return new CelestialBodyData

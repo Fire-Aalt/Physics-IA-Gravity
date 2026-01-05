@@ -123,8 +123,7 @@ public class SimulationManager : MonoBehaviour
         var cross = math.cross(delta, math.up());
         var direction = math.normalize(cross);
         
-        //var m2 = greaterBody.Mass;
-        var m2 = greaterBody.Mass + smallerBody.Mass;
+        var m2 = greaterBody.Mass;
         var r = math.distance(greaterBody.Position, smallerBody.Position);
         smallerBody.Velocity += greaterBody.Velocity + direction * math.sqrt(m2 * FinalGravityConstant / r);
     }
