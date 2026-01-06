@@ -113,6 +113,9 @@ public class SimulationManager : MonoBehaviour
         ApplyInitialVelocity(BodiesData[0], ref BodiesData.ElementAt(1));
         ApplyInitialVelocity(BodiesData[1], ref BodiesData.ElementAt(2));
         
+        Debug.Log($"Velocity of the Earth: {BodiesData[1].Velocity}");
+        Debug.Log($"Velocity of the Moon: {BodiesData[2].Velocity}");
+        
         UIController.Instance.Restart();
     }
 
@@ -123,9 +126,9 @@ public class SimulationManager : MonoBehaviour
         var cross = math.cross(delta, math.up());
         var direction = math.normalize(cross);
         
-        var m2 = greaterBody.Mass;
+        var m1 = greaterBody.Mass;
         var r = math.distance(greaterBody.Position, smallerBody.Position);
-        smallerBody.Velocity += greaterBody.Velocity + direction * math.sqrt(m2 * FinalGravityConstant / r);
+        smallerBody.Velocity += greaterBody.Velocity + direction * math.sqrt(m1 * FinalGravityConstant / r);
     }
 
     private void Update()
